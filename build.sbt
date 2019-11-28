@@ -1,7 +1,5 @@
 name := "http-request-signer"
 
-version := "0.1"
-
 lazy val scala212 = "2.12.10"
 lazy val scala211 = "2.13.1"
 lazy val supportedScalaVersions = List(scala212, scala211)

@@ -16,7 +16,7 @@ class Http4sRequestSigner(cipher: DSAParameters)(implicit ctx: ContextShift[IO])
         request.withHeaders(Headers(Header(RequestSigner.signatureHeaderName, signature) :: request.headers.toList))
       )
 
-  def message(request: Request[IO]): IO[Array[Byte]]=
+  private def message(request: Request[IO]): IO[Array[Byte]]=
     IO {
       (List(request.method.name, request.uri.renderString) ++
       request.headers.toList.collect({
