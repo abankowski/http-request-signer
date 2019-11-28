@@ -21,6 +21,9 @@ On the client side, once you have your request you can inject a signature by cal
     // akka-http
     signer.sign(request: HttpRequest): IO[HttpRequest] 
     
+Signature is injected as a header to the resulting request object and should be transferred to the server. 
+It's a proof that url, payload, body and few selected headers have not been changed. It might not work well with proxy (further enhancements are required). 
+    
 On the server side, grab decoded request:
 
     // http4s
@@ -36,3 +39,5 @@ On the server side, grab decoded request:
     case object SignatureMissing extends SignatureVerificationResult
     case object SignatureMalformed extends SignatureVerificationResult
     case object SignatureInvalid extends SignatureVerificationResult
+
+This method looks for the signature header and verifies it against the request object headers, method, uri and payload.
