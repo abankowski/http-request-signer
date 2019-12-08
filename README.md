@@ -4,17 +4,23 @@
 
 Available implementations for http4s and akka-http are published as separate jars. Both are cross compiled for Scala 2.12 and 2.13.
 
-Current implementation is a draft. Signature with DSA is hardcoded.
+Current implementation is a draft. Currently only signature with RSA is provided with ease of extensibility.
 
 ## Usage
 
-Prepare `DSAParameters` that will be used as a constructor argument. Provide implicit ContextShift[IO] in the scope.
-For **akka-http** get Materializer.
+Provide implicit ContextShift[IO] in the scope. For **akka-http** get also a Materializer.
+
+Prepare a keypair for asymmetric cipher and initialise `Rsa` implementation that includes both signer and verifier. 
 
 
-    val signer = Http4sRequestSigner(params: DSAParameters)
+    val kp: AsymmetricCipherKeyPair = _
+    val rsa = Rsa(kp)
 
-  
+Once you have a cryptography setup you can instantiate and use the request signer:
+
+`val signer = new Http4sRequestSigner(rsa)`
+
+For convenience let’s keep it like this though it’s not really usefull in many cases as you might usually need to have a different private key for signing your requests and different public key for verification of external requests.
 
 On the client side, once you have your request you can inject a signature by calling sign method:
 
@@ -44,3 +50,4 @@ On the server side, grab decoded request:
     case object SignatureInvalid extends SignatureVerificationResult
 
 This method looks for the signature header and verifies it against the request object headers, method, uri and payload.
+
