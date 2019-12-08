@@ -41,7 +41,6 @@ lazy val http4s = (project in file("http4s"))
     libraryDependencies ++= Seq(
         "org.http4s" %% "http4s-dsl",
         "org.http4s" %% "http4s-blaze-client",
-        "org.http4s" %% "http4s-dsl",
       ).map(_ % versions.http4sVersion % "provided"
     ) ++ catsDependencies ++ testDependencies)
   .dependsOn(core)
@@ -61,5 +60,14 @@ lazy val root = (project in file("."))
   .aggregate(akkaHttp, http4s)
   .settings(
     crossScalaVersions := Nil,
-    publish / skip := true
+    publish / skip := true,
+    libraryDependencies ++= testDependencies ++ Seq(
+      "com.typesafe.akka" %% "akka-testkit" % "2.6.0" % Test) ++
+      Seq(
+        "org.http4s" %% "http4s-dsl" % versions.http4sVersion,
+        "org.http4s" %% "http4s-blaze-client" % versions.http4sVersion,
+        "com.typesafe.akka" %% "akka-http" % versions.akkaHttp,
+        "com.typesafe.akka" %% "akka-stream" % versions.akkaStream
+      ).map(_ % Test)
   )
+  .dependsOn(http4s, akkaHttp)
