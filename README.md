@@ -1,5 +1,7 @@
 # Http Requests Signer
 
+![https://github.com/abankowski/http-request-signer/workflows/tests/badge.svg?branch=master](https://github.com/abankowski/http-request-signer/workflows/tests/badge.svg?branch=master)
+
 Available implementations for http4s and akka-http are published as separate jars. Both are cross compiled for Scala 2.12 and 2.13.
 
 Current implementation is a draft. Signature with DSA is hardcoded.
@@ -8,11 +10,12 @@ Current implementation is a draft. Signature with DSA is hardcoded.
 
 Prepare `DSAParameters` that will be used as a constructor argument. Provide implicit ContextShift[IO] in the scope.
 For **akka-http** get Materializer.
-  
-  
+
+
     val signer = Http4sRequestSigner(params: DSAParameters)
+
   
-  
+
 On the client side, once you have your request you can inject a signature by calling sign method:
 
     // http4s
@@ -20,7 +23,7 @@ On the client side, once you have your request you can inject a signature by cal
     
     // akka-http
     signer.sign(request: HttpRequest): IO[HttpRequest] 
-    
+
 Signature is injected as a header to the resulting request object and should be transferred to the server. 
 It's a proof that url, payload, body and few selected headers have not been changed. It might not work well with proxy (further enhancements are required). 
     
