@@ -24,7 +24,7 @@ lazy val testDependencies = Seq(
   "org.scalatest" %% "scalatest" % "3.0.8",
   "org.scalactic" %% "scalactic" % "3.0.8",
   "org.scalamock" %% "scalamock" % "4.4.0",
-).map(_ % "test")
+).map(_ % Test)
 
 lazy val core = (project in file("core"))
   .settings(
@@ -53,7 +53,7 @@ lazy val akkaHttp = (project in file("akka-http"))
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-http" % versions.akkaHttp % "provided",
       "com.typesafe.akka" %% "akka-stream" % versions.akkaStream % "provided",
-    ) ++ catsDependencies ++ testDependencies
+    ) ++ catsDependencies ++ testDependencies ++ Seq("com.typesafe.akka" %% "akka-testkit" % "2.6.0" % Test)
   )
   .dependsOn(core)
 

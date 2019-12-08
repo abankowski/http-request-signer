@@ -6,9 +6,7 @@ import scala.language.higherKinds
 import pl.abankowski.requestsigner.signature.{Generator, Verifier}
 
 
-sealed trait RequestSigner[R, F[_]]
-
-object RequestSigner {
+object RequestCrypto {
   val signatureHeaderName = "Request-Signature"
 
   val headers: Set[String] = Set(
@@ -16,8 +14,6 @@ object RequestSigner {
     "Cookie",
     "Referer"
   )
-
-  val signatureSeparator = '-'
 }
 
 sealed trait SignatureVerificationResult
@@ -26,14 +22,16 @@ case object SignatureMissing extends SignatureVerificationResult
 case object SignatureMalformed extends SignatureVerificationResult
 case object SignatureInvalid extends SignatureVerificationResult
 
-abstract class AbstractRequestSigner[R, F[_]](crypto: Generator with Verifier) extends RequestSigner[R, F] {
-
+trait RequestSigner[R, F[_]] {
+  val crypto: Generator
   def sign(request: R): F[R]
-  def verify(request: R): F[SignatureVerificationResult]
 
-  protected def calculateSignature(message: Array[Byte]): String = {
-    Base64.toBase64String(crypto.signature(message))
-  }
+  protected def calculateSignature(message: Array[Byte]): String = Base64.toBase64String(crypto.signature(message))
+}
+
+trait RequestVerifier[R, F[_]] {
+  val crypto: Verifier
+  def verify(request: R): F[SignatureVerificationResult]
 
   protected def verifySignature(message: Array[Byte], signature: String): SignatureVerificationResult =
     if (crypto.verify(message, Base64.decode(signature))) {
