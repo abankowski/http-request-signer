@@ -4,10 +4,12 @@ import java.io.ByteArrayOutputStream
 
 import cats.effect.{ContextShift, IO}
 import org.bouncycastle.crypto.params.DSAParameters
+import org.bouncycastle.crypto.{AsymmetricCipherKeyPair, CipherParameters}
 import org.http4s.{Header, Headers, Request}
+import pl.abankowski.requestsigner.signature.{Generator, Verifier}
 
-class Http4sRequestSigner(cipher: DSAParameters)(implicit ctx: ContextShift[IO])
-  extends AbstractRequestSigner[Request[IO], IO](cipher){
+class Http4sRequestSigner(crypto: Generator with Verifier)(implicit ctx: ContextShift[IO])
+  extends AbstractRequestSigner[Request[IO], IO](crypto){
 
   override def sign(request: Request[IO]): IO[Request[IO]] =
     message(request)

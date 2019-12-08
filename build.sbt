@@ -20,6 +20,12 @@ lazy val catsDependencies = Seq(
   "org.typelevel" %% "cats-core",
 ).map(_ % versions.catsVersion)
 
+lazy val testDependencies = Seq(
+  "org.scalatest" %% "scalatest" % "3.0.8",
+  "org.scalactic" %% "scalactic" % "3.0.8",
+  "org.scalamock" %% "scalamock" % "4.4.0",
+).map(_ % "test")
+
 lazy val core = (project in file("core"))
   .settings(
     crossScalaVersions := supportedScalaVersions,
@@ -36,7 +42,8 @@ lazy val http4s = (project in file("http4s"))
         "org.http4s" %% "http4s-dsl",
         "org.http4s" %% "http4s-blaze-client",
         "org.http4s" %% "http4s-dsl",
-      ).map(_ % versions.http4sVersion % "provided") ++ catsDependencies)
+      ).map(_ % versions.http4sVersion % "provided"
+    ) ++ catsDependencies ++ testDependencies)
   .dependsOn(core)
 
 lazy val akkaHttp = (project in file("akka-http"))
@@ -46,7 +53,7 @@ lazy val akkaHttp = (project in file("akka-http"))
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-http" % versions.akkaHttp % "provided",
       "com.typesafe.akka" %% "akka-stream" % versions.akkaStream % "provided",
-    ) ++ catsDependencies
+    ) ++ catsDependencies ++ testDependencies
   )
   .dependsOn(core)
 
