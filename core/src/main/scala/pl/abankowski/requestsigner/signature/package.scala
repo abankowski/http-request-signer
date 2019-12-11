@@ -34,7 +34,6 @@ package object signature {
     override def signature(message: Array[Byte]): Array[Byte] = {
       signer.init(true, privKey)
       signer.update(message, 0, message.length)
-
       signer.generateSignature()
     }
   }

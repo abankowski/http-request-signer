@@ -1,12 +1,13 @@
-package pl.abankowski.requestsigner
+package pl.abankowski.requestsigner.http4s
 
-import java.security.{KeyPairGenerator, SecureRandom}
+import java.security.SecureRandom
 
 import cats.effect.IO
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
 import org.http4s.{Headers, Method, Request, Uri}
 import org.http4s.Uri.{Authority, RegName, Scheme}
 import org.scalatest.{FunSpec, Matchers}
+import pl.abankowski.requestsigner.{RequestCrypto, SignatureInvalid, SignatureMissing, SignatureValid}
 import pl.abankowski.requestsigner.signature.rsa.Rsa
 
 class Http4SRequestCryptoSpec extends FunSpec with Matchers {
@@ -17,8 +18,9 @@ class Http4SRequestCryptoSpec extends FunSpec with Matchers {
     val keySizeBits = 2^1024
     val strength = 12
 
-    import org.bouncycastle.crypto.params.RSAKeyGenerationParameters
     import java.math.BigInteger
+
+    import org.bouncycastle.crypto.params.RSAKeyGenerationParameters
     val publicExponent = BigInteger.valueOf(0x10001)
 
     val rnd = SecureRandom.getInstanceStrong
