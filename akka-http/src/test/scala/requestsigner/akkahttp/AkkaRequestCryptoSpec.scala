@@ -1,17 +1,17 @@
-package requestsigner
+package requestsigner.akkahttp
 
 import java.security.SecureRandom
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpHeader, HttpMethods, HttpRequest, Uri}
 import akka.http.scaladsl.model.Uri.Path
-import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import cats.effect.IO
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
-import org.scalatest.{FunSpec, FunSpecLike, Matchers}
+import org.scalatest.{FunSpecLike, Matchers}
+import pl.abankowski.requestsigner.{RequestCrypto, SignatureInvalid, SignatureMissing, SignatureValid}
+import pl.abankowski.requestsigner.akkahttp.AkkaRequestCrypto
 import pl.abankowski.requestsigner.signature.rsa.Rsa
-import pl.abankowski.requestsigner.{AkkaRequestCrypto, RequestCrypto, SignatureInvalid, SignatureMissing, SignatureValid}
 
 class AkkaRequestCryptoSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with Matchers {
   private implicit val ctx = IO.contextShift(scala.concurrent.ExecutionContext.global)

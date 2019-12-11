@@ -1,10 +1,13 @@
-package pl.abankowski.requestsigner
+package pl.abankowski.requestsigner.akkahttp
 
 import java.io.ByteArrayOutputStream
 
 import akka.http.scaladsl.model.HttpRequest
 import akka.stream.Materializer
 import cats.effect.{ContextShift, IO}
+import pl.abankowski.requestsigner.{RequestSigner, RequestVerifier, SignatureMissing, SignatureVerificationResult}
+import pl.abankowski.requestsigner.RequestCrypto._
+
 import scala.language.{higherKinds, postfixOps}
 import scala.concurrent.duration._
 
@@ -14,7 +17,7 @@ package object impl {
     protected def message(request: HttpRequest)(implicit mat: Materializer, ctx: ContextShift[IO]) = IO {
       (List(request.method.value, request.uri.toString()) ++
        request.headers.collect({
-         case header if RequestCrypto.headers.contains(header.name()) => s"${header.name()}:${header.value()}"
+         case header if headers.contains(header.name()) => s"${header.name()}:${header.value()}"
        })).foldLeft(new ByteArrayOutputStream())({ (buffer, value) =>
         buffer.write(value.getBytes)
         buffer
@@ -44,7 +47,7 @@ package object impl {
     implicit val ctx: ContextShift[IO]
 
     override def verify(request: HttpRequest): IO[SignatureVerificationResult] =
-      request.headers.find(_.name() == RequestCrypto.signatureHeaderName).map(signature =>
+      request.headers.find(_.name() == signatureHeaderName).map(signature =>
         message(request).map( message =>
           verifySignature(message, signature.value())
         )).getOrElse(IO.pure(SignatureMissing))

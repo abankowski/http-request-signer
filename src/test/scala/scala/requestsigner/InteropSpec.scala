@@ -4,15 +4,17 @@ import java.security.SecureRandom
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpHeader, HttpMethods, HttpRequest => AkkaHttpRequest, Uri => AkkaUri}
-import akka.http.scaladsl.model.Uri.{Authority => AkkaAuthority, Host, Path}
+import akka.http.scaladsl.model.Uri.{Host, Path, Authority => AkkaAuthority}
 import akka.testkit.TestKit
 import cats.effect.IO
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
-import org.http4s.{Headers, Method, Request, Uri}
+import org.http4s.{Header, Headers, Method, Request, Uri}
 import org.http4s.Uri.{Authority, RegName, Scheme}
 import org.scalatest.{FunSpec, FunSpecLike, Matchers}
 import pl.abankowski.requestsigner.signature.rsa.Rsa
-import pl.abankowski.requestsigner.{AkkaRequestCrypto, Http4SRequestCrypto, RequestCrypto, SignatureInvalid, SignatureMissing, SignatureValid}
+import pl.abankowski.requestsigner.{RequestCrypto, SignatureInvalid, SignatureMissing, SignatureValid}
+import pl.abankowski.requestsigner.akkahttp.AkkaRequestCrypto
+import pl.abankowski.requestsigner.http4s.Http4SRequestCrypto
 
 class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with Matchers {
   private implicit val ctx = IO.contextShift(scala.concurrent.ExecutionContext.global)
@@ -33,18 +35,18 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
     val rsag = new RSAKeyPairGenerator
     rsag.init(rsagp)
 
-    val crypto1 = Rsa(rsag.generateKeyPair())
+    val crypto = Rsa(rsag.generateKeyPair())
 
-    var signer1: AkkaRequestCrypto = new AkkaRequestCrypto(crypto1)
-    var signer2: Http4SRequestCrypto = new Http4SRequestCrypto(crypto1)
+    var signer1: AkkaRequestCrypto = new AkkaRequestCrypto(crypto)
+    var signer2: Http4SRequestCrypto = new Http4SRequestCrypto(crypto)
 
-    it("they should generate equal signatures") {
+    it("they should be compatible") {
       val req = AkkaHttpRequest(
         method = HttpMethods.GET,
         uri = AkkaUri(
           scheme = "http",
-          authority = AkkaUri.Authority(host = Host("example.com")),
-          path = Path("/foo")
+          authority = AkkaUri.Authority(host = Host("example.com"),  port = 9000),
+          path = Path("/foo"),
         ),
         headers = List.empty[HttpHeader]
       )
@@ -61,13 +63,11 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
       val req2 = Request[IO](
         method = Method.GET,
         uri = baseUri.withPath("/foo"),
-        headers = Headers.empty)
+        headers = Headers.of(Header(RequestCrypto.signatureHeaderName, signature1.map(_.value()).getOrElse(""))))
 
-      val signed2 = signer2.sign(req2).unsafeRunSync()
+      val verified = signer2.verify(req2).unsafeRunSync()
 
-      val signature2 = signed2.headers.find(_.name.value == RequestCrypto.signatureHeaderName)
-
-      signature1 shouldEqual signature2
+      verified shouldEqual SignatureValid
     }
   }
 }

@@ -1,9 +1,10 @@
-package pl.abankowski.requestsigner
+package pl.abankowski.requestsigner.http4s
 
 import java.io.ByteArrayOutputStream
 
 import cats.effect.{ContextShift, IO}
 import org.http4s.{Header, Headers, Request}
+import pl.abankowski.requestsigner.{RequestCrypto, RequestSigner, RequestVerifier, SignatureMissing, SignatureVerificationResult}
 
 package object impl {
 
