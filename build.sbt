@@ -5,7 +5,7 @@ lazy val scala211 = "2.13.1"
 lazy val supportedScalaVersions = List(scala212, scala211)
 
 ThisBuild / organization := "pl.abankowski"
-ThisBuild / version      := "0.1.0"
+ThisBuild / version      := "0.1.1"
 ThisBuild / scalaVersion := scala212
 
 ThisBuild / githubOwner := "abankowski"
@@ -41,6 +41,7 @@ lazy val testDependencies = Seq(
 
 lazy val core = (project in file("core"))
   .settings(
+    name := "http-request-signer-core",
     crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq("org.bouncycastle" % "bcprov-jdk15on" % "1.64")
   )
@@ -62,7 +63,7 @@ lazy val akkaHttp = (project in file("akka-http"))
   .dependsOn(core)
 
 lazy val root = (project in file("."))
-  .aggregate(akkaHttp, http4s)
+  .aggregate(core, akkaHttp, http4s)
   .settings(
     scalaVersion := scala212,
     crossScalaVersions := Nil,
