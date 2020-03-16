@@ -5,7 +5,7 @@ lazy val scala211 = "2.13.1"
 lazy val supportedScalaVersions = List(scala212, scala211)
 
 ThisBuild / organization := "pl.abankowski"
-ThisBuild / version      := "0.1.1"
+ThisBuild / version      := "0.1.2"
 ThisBuild / scalaVersion := scala212
 
 ThisBuild / githubOwner := "abankowski"
@@ -15,7 +15,7 @@ lazy val versions = new {
   val akkaHttp = "10.1.9"
   val akkaStream = "2.6.0"
   val catsVersion = "2.0.0"
-  val http4sVersion = "0.21.0-M5"
+  val http4sVersion = "0.21.1"
 }
 
 lazy val http4sDependencies = Seq(
