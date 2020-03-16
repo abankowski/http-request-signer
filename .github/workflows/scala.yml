@@ -18,3 +18,5 @@ jobs:
       run: sudo apt-get install haveged
     - name: Run tests
       run: sbt test
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
