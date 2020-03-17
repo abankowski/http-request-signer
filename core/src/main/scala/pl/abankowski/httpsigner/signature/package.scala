@@ -1,4 +1,4 @@
-package pl.abankowski.requestsigner
+package pl.abankowski.httpsigner
 
 import org.bouncycastle.crypto.digests.SHA512Digest
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter
