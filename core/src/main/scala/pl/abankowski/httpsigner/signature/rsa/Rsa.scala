@@ -1,8 +1,8 @@
-package pl.abankowski.requestsigner.signature.rsa
+package pl.abankowski.httpsigner.signature.rsa
 
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair
-import pl.abankowski.requestsigner.signature.{RsaSHA512Generator, RsaSHA512Verifier}
+import pl.abankowski.httpsigner.signature.{RsaSHA512Generator, RsaSHA512Verifier}
 
 class Rsa(
   override val privKey: AsymmetricKeyParameter,

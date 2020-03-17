@@ -1,6 +1,6 @@
-package pl.abankowski.requestsigner.signature.rsa
+package pl.abankowski.httpsigner.signature.rsa
 
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter
-import pl.abankowski.requestsigner.signature.RsaSHA512Verifier
+import pl.abankowski.httpsigner.signature.RsaSHA512Verifier
 
 class RsaVerifier(override val pubKey: AsymmetricKeyParameter) extends RsaSHA512Verifier

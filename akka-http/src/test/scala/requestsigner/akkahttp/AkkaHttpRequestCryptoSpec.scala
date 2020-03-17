@@ -9,11 +9,11 @@ import akka.testkit.TestKit
 import cats.effect.IO
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
 import org.scalatest.{FunSpecLike, Matchers}
-import pl.abankowski.requestsigner.{RequestCrypto, SignatureInvalid, SignatureMissing, SignatureValid}
-import pl.abankowski.requestsigner.akkahttp.AkkaRequestCrypto
-import pl.abankowski.requestsigner.signature.rsa.Rsa
+import pl.abankowski.httpsigner.{HttpCrypto, SignatureInvalid, SignatureMissing, SignatureValid}
+import pl.abankowski.httpsigner.akkahttp.AkkaHttpRequestCrypto
+import pl.abankowski.httpsigner.signature.rsa.Rsa
 
-class AkkaRequestCryptoSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with Matchers {
+class AkkaHttpRequestCryptoSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with Matchers {
   private implicit val ctx = IO.contextShift(scala.concurrent.ExecutionContext.global)
 
   describe("Having Http4sRequestSigner set up") {
@@ -35,8 +35,8 @@ class AkkaRequestCryptoSpec extends TestKit(ActorSystem("MySpec")) with FunSpecL
     val crypto1 = Rsa(rsag.generateKeyPair())
     val crypto2 = Rsa(rsag.generateKeyPair())
 
-    var signer1: AkkaRequestCrypto = new AkkaRequestCrypto(crypto1)
-    var signer2: AkkaRequestCrypto = new AkkaRequestCrypto(crypto2)
+    var signer1: AkkaHttpRequestCrypto = new AkkaHttpRequestCrypto(crypto1)
+    var signer2: AkkaHttpRequestCrypto = new AkkaHttpRequestCrypto(crypto2)
 
 
     it("should generate a signature") {
@@ -54,7 +54,7 @@ class AkkaRequestCryptoSpec extends TestKit(ActorSystem("MySpec")) with FunSpecL
 
       val signed = signer1.sign(req).unsafeRunSync()
 
-      val signature = signed.headers.find(_.name == RequestCrypto.signatureHeaderName)
+      val signature = signed.headers.find(_.name == HttpCrypto.signatureHeaderName)
 
       signature shouldBe defined
 
@@ -76,8 +76,8 @@ class AkkaRequestCryptoSpec extends TestKit(ActorSystem("MySpec")) with FunSpecL
       val signed1 = signer1.sign(req).unsafeRunSync()
       val signed2 = signer2.sign(req).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name == RequestCrypto.signatureHeaderName)
-      val signature2 = signed2.headers.find(_.name == RequestCrypto.signatureHeaderName)
+      val signature1 = signed1.headers.find(_.name == HttpCrypto.signatureHeaderName)
+      val signature2 = signed2.headers.find(_.name == HttpCrypto.signatureHeaderName)
 
       signature1 shouldBe defined
       signature2 shouldBe defined
@@ -112,8 +112,8 @@ class AkkaRequestCryptoSpec extends TestKit(ActorSystem("MySpec")) with FunSpecL
       val signed1 = signer1.sign(req1).unsafeRunSync()
       val signed2 = signer1.sign(req2).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name == RequestCrypto.signatureHeaderName)
-      val signature2 = signed2.headers.find(_.name == RequestCrypto.signatureHeaderName)
+      val signature1 = signed1.headers.find(_.name == HttpCrypto.signatureHeaderName)
+      val signature2 = signed2.headers.find(_.name == HttpCrypto.signatureHeaderName)
 
       signature1 shouldBe defined
       signature2 shouldBe defined
