@@ -8,9 +8,6 @@ ThisBuild / organization := "pl.abankowski"
 ThisBuild / version      := "0.1.2"
 ThisBuild / scalaVersion := scala212
 
-ThisBuild / githubOwner := "abankowski"
-ThisBuild / githubRepository := "http-request-signer"
-
 lazy val versions = new {
   val akkaHttp = "10.1.9"
   val akkaStream = "2.6.0"
@@ -43,14 +40,17 @@ lazy val core = (project in file("core"))
   .settings(
     name := "http-request-signer-core",
     crossScalaVersions := supportedScalaVersions,
-    libraryDependencies ++= Seq("org.bouncycastle" % "bcprov-jdk15on" % "1.64")
+    libraryDependencies ++= Seq("org.bouncycastle" % "bcprov-jdk15on" % "1.64"),
+    licenses += ("Apache-2.0", url("http://opensource.org/licenses/Apache-2.0"))
   )
 
 lazy val http4s = (project in file("http4s"))
   .settings(
     name := "http4s-request-signer",
     crossScalaVersions := supportedScalaVersions,
-    libraryDependencies ++= http4sDependencies.map(_  % "provided") ++ catsDependencies ++ testDependencies)
+    libraryDependencies ++= http4sDependencies.map(_  % "provided") ++ catsDependencies ++ testDependencies,
+    licenses += ("Apache-2.0", url("http://opensource.org/licenses/Apache-2.0"))
+  )
   .dependsOn(core)
 
 lazy val akkaHttp = (project in file("akka-http"))
@@ -58,7 +58,8 @@ lazy val akkaHttp = (project in file("akka-http"))
     name := "akka-http-request-signer",
     crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= akkaHttpDependencies.map(_ % "provided") ++ catsDependencies ++ testDependencies ++
-                            Seq("com.typesafe.akka" %% "akka-testkit" % "2.6.0" % Test)
+                            Seq("com.typesafe.akka" %% "akka-testkit" % "2.6.0" % Test),
+    licenses += ("Apache-2.0", url("http://opensource.org/licenses/Apache-2.0"))
   )
   .dependsOn(core)
 

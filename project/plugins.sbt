@@ -1,1 +1,1 @@
-addSbtPlugin("com.codecommit" % "sbt-github-packages" % "0.5.0")
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.6")
