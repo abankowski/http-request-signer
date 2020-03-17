@@ -57,3 +57,4 @@ On the server side, grab decoded request:
 
 This method looks for the signature header and verifies it against the request object headers, method, uri and payload.
 
+_This project is licensed under the terms of the Apache 2.0 license http://www.apache.org/licenses/LICENSE-2.0_
