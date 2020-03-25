@@ -1,7 +1,7 @@
 package pl.abankowski.httpsigner.akkahttp
 
 import akka.http.scaladsl.model.headers.{ModeledCustomHeader, ModeledCustomHeaderCompanion}
-import pl.abankowski.httpsigner.HttpCrypto
+import pl.abankowski.httpsigner.HttpCryptoConfig
 
 import scala.util.Try
 
@@ -12,7 +12,7 @@ final class SignatureHeader(signature: String) extends ModeledCustomHeader[Signa
   override def value: String = signature
 }
 
-object SignatureHeader extends ModeledCustomHeaderCompanion[SignatureHeader] {
-  override val name = HttpCrypto.signatureHeaderName
+object SignatureHeader extends ModeledCustomHeaderCompanion[SignatureHeader] with HttpCryptoConfig{
+  override val name = signatureHeaderName
   override def parse(value: String) = Try(new SignatureHeader(value))
 }

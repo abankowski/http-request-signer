@@ -5,8 +5,7 @@ import java.io.ByteArrayOutputStream
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.Materializer
 import cats.effect.{ContextShift, IO}
-import pl.abankowski.httpsigner.{HttpSigner, HttpVerifier, SignatureMissing, SignatureVerificationResult}
-import pl.abankowski.httpsigner.HttpCrypto._
+import pl.abankowski.httpsigner.{HttpCryptoConfig, HttpSigner, HttpVerifier, SignatureMissing, SignatureVerificationResult}
 
 import scala.language.{higherKinds, postfixOps}
 import scala.concurrent.duration._
@@ -14,10 +13,13 @@ import scala.concurrent.duration._
 package object impl {
 
    trait RequestHelpers {
+
+    val config: HttpCryptoConfig
+
     protected def message(request: HttpRequest)(implicit mat: Materializer, ctx: ContextShift[IO]) = IO {
       (List(request.method.value, request.uri.toString()) ++
        request.headers.collect({
-         case header if headers.contains(header.name()) => s"${header.name()}:${header.value()}"
+         case header if config.protectedHeaders.contains(header.name()) => s"${header.name()}:${header.value()}"
        })).foldLeft(new ByteArrayOutputStream())({ (buffer, value) =>
         buffer.write(value.getBytes)
         buffer
@@ -32,9 +34,12 @@ package object impl {
   }
 
   trait ResponseHelpers {
+
+    val config: HttpCryptoConfig
+
     protected def message(request: HttpResponse)(implicit mat: Materializer, ctx: ContextShift[IO]) = IO {
        request.headers.collect({
-         case header if headers.contains(header.name()) => s"${header.name()}:${header.value()}"
+         case header if config.protectedHeaders.contains(header.name()) => s"${header.name()}:${header.value()}"
        }).foldLeft(new ByteArrayOutputStream())({ (buffer, value) =>
         buffer.write(value.getBytes)
         buffer
@@ -63,8 +68,10 @@ package object impl {
     implicit val mat: Materializer
     implicit val ctx: ContextShift[IO]
 
+    val config: HttpCryptoConfig
+
     override def verify(request: HttpRequest): IO[SignatureVerificationResult] =
-      request.headers.find(_.name() == signatureHeaderName).map(signature =>
+      request.headers.find(_.name() == config.signatureHeaderName).map(signature =>
         message(request).map( message =>
           verifySignature(message, signature.value())
         )).getOrElse(IO.pure(SignatureMissing))
@@ -84,9 +91,10 @@ package object impl {
   trait AkkaHttpResponseVerifier extends HttpVerifier[HttpResponse, IO] with ResponseHelpers {
     implicit val mat: Materializer
     implicit val ctx: ContextShift[IO]
+    val config: HttpCryptoConfig
 
     override def verify(response: HttpResponse): IO[SignatureVerificationResult] =
-      response.headers.find(_.name() == signatureHeaderName).map(signature =>
+      response.headers.find(_.name() == config.signatureHeaderName).map(signature =>
         message(response).map( message =>
           verifySignature(message, signature.value())
         )).getOrElse(IO.pure(SignatureMissing))

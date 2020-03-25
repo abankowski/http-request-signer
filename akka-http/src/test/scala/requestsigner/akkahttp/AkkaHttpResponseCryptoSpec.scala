@@ -8,7 +8,7 @@ import akka.testkit.TestKit
 import cats.effect.IO
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
 import org.scalatest.{FunSpecLike, Matchers}
-import pl.abankowski.httpsigner.{HttpCrypto, SignatureInvalid, SignatureMissing, SignatureValid}
+import pl.abankowski.httpsigner.{SignatureInvalid, SignatureMissing, SignatureValid}
 import pl.abankowski.httpsigner.akkahttp.AkkaHttpResponseCrypto
 import pl.abankowski.httpsigner.signature.rsa.Rsa
 
@@ -45,7 +45,7 @@ class AkkaHttpResponseCryptoSpec extends TestKit(ActorSystem("MySpec")) with Fun
 
       val signed = signer1.sign(res).unsafeRunSync()
 
-      val signature = signed.headers.find(_.name == HttpCrypto.signatureHeaderName)
+      val signature = signed.headers.find(_.name == signer1.config.signatureHeaderName)
 
       signature shouldBe defined
 
@@ -60,8 +60,8 @@ class AkkaHttpResponseCryptoSpec extends TestKit(ActorSystem("MySpec")) with Fun
       val signed1 = signer1.sign(req).unsafeRunSync()
       val signed2 = signer2.sign(req).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name == HttpCrypto.signatureHeaderName)
-      val signature2 = signed2.headers.find(_.name == HttpCrypto.signatureHeaderName)
+      val signature1 = signed1.headers.find(_.name == signer1.config.signatureHeaderName)
+      val signature2 = signed2.headers.find(_.name == signer2.config.signatureHeaderName)
 
       signature1 shouldBe defined
       signature2 shouldBe defined

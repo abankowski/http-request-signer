@@ -12,7 +12,7 @@ import org.http4s.{Header, Headers, Method, Request, Response, Uri}
 import org.http4s.Uri.{Authority, RegName, Scheme}
 import org.scalatest.{FunSpec, FunSpecLike, Matchers}
 import pl.abankowski.httpsigner.signature.rsa.Rsa
-import pl.abankowski.httpsigner.{HttpCrypto, SignatureValid}
+import pl.abankowski.httpsigner.SignatureValid
 import pl.abankowski.httpsigner.akkahttp.{AkkaHttpRequestCrypto, AkkaHttpResponseCrypto}
 import pl.abankowski.httpsigner.http4s.{Http4sRequestCrypto, Http4SResponseCrypto}
 
@@ -53,7 +53,7 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
 
       val signed1 = signer1.sign(req).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name == HttpCrypto.signatureHeaderName)
+      val signature1 = signed1.headers.find(_.name == signer1.config.signatureHeaderName)
 
       val baseUri = Uri.apply(
         Some(Scheme.http),
@@ -63,7 +63,7 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
       val req2 = Request[IO](
         method = Method.GET,
         uri = baseUri.withPath("/foo"),
-        headers = Headers.of(Header(HttpCrypto.signatureHeaderName, signature1.map(_.value()).getOrElse(""))))
+        headers = Headers.of(Header(signer2.config.signatureHeaderName, signature1.map(_.value()).getOrElse(""))))
 
       val verified = signer2.verify(req2).unsafeRunSync()
 
@@ -99,10 +99,10 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
 
       val signed1 = signer1.sign(res).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name == HttpCrypto.signatureHeaderName)
+      val signature1 = signed1.headers.find(_.name == signer1.config.signatureHeaderName)
 
       val res2 = Response[IO](
-        headers = Headers.of(Header(HttpCrypto.signatureHeaderName, signature1.map(_.value()).getOrElse(""))))
+        headers = Headers.of(Header(signer1.config.signatureHeaderName, signature1.map(_.value()).getOrElse(""))))
 
       val verified = signer2.verify(res2).unsafeRunSync()
 

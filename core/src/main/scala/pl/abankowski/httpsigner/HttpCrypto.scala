@@ -5,11 +5,10 @@ import org.bouncycastle.util.encoders.Base64
 import scala.language.higherKinds
 import pl.abankowski.httpsigner.signature.{Generator, Verifier}
 
+trait HttpCryptoConfig {
+  final val signatureHeaderName = "Request-Signature"
 
-object HttpCrypto {
-  val signatureHeaderName = "Request-Signature"
-
-  val headers: Set[String] = Set(
+  val protectedHeaders: Set[String] = Set(
     "Content-Type",
     "Cookie",
     "Referer"
