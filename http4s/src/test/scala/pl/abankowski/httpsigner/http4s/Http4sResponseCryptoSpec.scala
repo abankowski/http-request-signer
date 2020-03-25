@@ -6,7 +6,7 @@ import cats.effect.IO
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
 import org.http4s.{Headers, Response}
 import org.scalatest.{FunSpec, Matchers}
-import pl.abankowski.httpsigner.{HttpCrypto, SignatureInvalid, SignatureMissing, SignatureValid}
+import pl.abankowski.httpsigner.{SignatureInvalid, SignatureMissing, SignatureValid}
 import pl.abankowski.httpsigner.signature.rsa.Rsa
 
 class Http4sResponseCryptoSpec extends FunSpec with Matchers {
@@ -40,7 +40,7 @@ class Http4sResponseCryptoSpec extends FunSpec with Matchers {
 
       val signed = signer1.sign(res).unsafeRunSync()
 
-      val signature = signed.headers.find(_.name.value == HttpCrypto.signatureHeaderName)
+      val signature = signed.headers.find(_.name.value == signer1.config.signatureHeaderName)
 
       signature shouldBe defined
 
@@ -54,8 +54,8 @@ class Http4sResponseCryptoSpec extends FunSpec with Matchers {
       val signed1 = signer1.sign(res).unsafeRunSync()
       val signed2 = signer2.sign(res).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name.value == HttpCrypto.signatureHeaderName)
-      val signature2 = signed2.headers.find(_.name.value == HttpCrypto.signatureHeaderName)
+      val signature1 = signed1.headers.find(_.name.value == signer1.config.signatureHeaderName)
+      val signature2 = signed2.headers.find(_.name.value == signer2.config.signatureHeaderName)
 
       signature1 shouldBe defined
       signature2 shouldBe defined

@@ -4,16 +4,18 @@ import java.io.ByteArrayOutputStream
 
 import cats.effect.{ContextShift, IO}
 import org.http4s.{Header, Headers, Request, Response}
-import pl.abankowski.httpsigner.{HttpCrypto, HttpSigner, HttpVerifier, SignatureMissing, SignatureVerificationResult}
+import pl.abankowski.httpsigner.{HttpCryptoConfig, HttpSigner, HttpVerifier, SignatureMissing, SignatureVerificationResult}
 
 package object impl {
 
   trait RequestHelpers {
+    val config: HttpCryptoConfig
+
     protected def message(request: Request[IO]): IO[Array[Byte]] =
       IO {
         (List(request.method.name, request.uri.renderString) ++
          request.headers.toList.collect({
-           case header if HttpCrypto.headers.contains(header.name.value) => s"${header.name.value}:${header.value}"
+           case header if config.protectedHeaders.contains(header.name.value) => s"${header.name.value}:${header.value}"
          })).foldLeft(new ByteArrayOutputStream())({ (buffer, value) =>
           buffer.write(value.getBytes)
           buffer
@@ -27,10 +29,12 @@ package object impl {
   }
 
   trait ResponseHelpers {
+    val config: HttpCryptoConfig
+
     protected def message(response: Response[IO]): IO[Array[Byte]] =
       IO {
         response.headers.toList.collect({
-           case header if HttpCrypto.headers.contains(header.name.value) => s"${header.name.value}:${header.value}"
+           case header if config.protectedHeaders.contains(header.name.value) => s"${header.name.value}:${header.value}"
         }).foldLeft(new ByteArrayOutputStream())({ (buffer, value) =>
           buffer.write(value.getBytes)
           buffer
@@ -50,15 +54,16 @@ package object impl {
       message(request)
         .map(calculateSignature)
         .map(signature =>
-          request.withHeaders(Headers(Header(HttpCrypto.signatureHeaderName, signature) :: request.headers.toList))
+          request.withHeaders(Headers(Header(config.signatureHeaderName, signature) :: request.headers.toList))
         )
   }
 
   trait Http4sRequestVerifier extends HttpVerifier[Request[IO], IO] with RequestHelpers{
     implicit val ctx: ContextShift[IO]
+    val config: HttpCryptoConfig
 
     override def verify(request: Request[IO]): IO[SignatureVerificationResult] =
-      request.headers.find(_.name.value == HttpCrypto.signatureHeaderName)
+      request.headers.find(_.name.value == config.signatureHeaderName)
         .map(signature =>
           message(request).map(verifySignature(_, signature.value))
         )
@@ -67,20 +72,22 @@ package object impl {
 
   trait Http4sResponseSigner extends HttpSigner[Response[IO], IO] with ResponseHelpers{
     implicit val ctx: ContextShift[IO]
+    val config: HttpCryptoConfig
 
     override def sign(response: Response[IO]): IO[Response[IO]] =
       message(response)
         .map(calculateSignature)
         .map(signature =>
-          response.withHeaders(Headers(Header(HttpCrypto.signatureHeaderName, signature) :: response.headers.toList))
+          response.withHeaders(Headers(Header(config.signatureHeaderName, signature) :: response.headers.toList))
         )
   }
 
   trait Http4sResponseVerifier extends HttpVerifier[Response[IO], IO] with ResponseHelpers{
     implicit val ctx: ContextShift[IO]
+    val config: HttpCryptoConfig
 
     override def verify(response: Response[IO]): IO[SignatureVerificationResult] =
-      response.headers.find(_.name.value == HttpCrypto.signatureHeaderName)
+      response.headers.find(_.name.value == config.signatureHeaderName)
         .map(signature =>
           message(response).map(verifySignature(_, signature.value))
         )
