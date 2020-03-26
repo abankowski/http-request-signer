@@ -4,7 +4,7 @@ import org.bouncycastle.crypto.params.AsymmetricKeyParameter
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair
 import pl.abankowski.httpsigner.signature.{RsaSHA512Generator, RsaSHA512Verifier}
 
-class Rsa(
+final class Rsa(
   override val privKey: AsymmetricKeyParameter,
   override val pubKey: AsymmetricKeyParameter
 ) extends RsaSHA512Verifier with RsaSHA512Generator
