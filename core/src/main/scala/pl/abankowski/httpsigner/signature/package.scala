@@ -19,7 +19,7 @@ package object signature {
   protected[httpsigner] trait RsaSHA512Verifier extends Verifier {
 
     val pubKey: AsymmetricKeyParameter
-    private val signer  = new RSADigestSigner(new SHA512Digest())
+    private val signer = new RSADigestSigner(new SHA512Digest())
 
     override def verify(message: Array[Byte], signature: Array[Byte]): Boolean = {
       signer.init(false, pubKey)
@@ -31,7 +31,7 @@ package object signature {
   protected[httpsigner] trait RsaSHA512Generator extends Generator {
 
     val privKey: AsymmetricKeyParameter
-    private val signer  = new RSADigestSigner(new SHA512Digest())
+    private val signer = new RSADigestSigner(new SHA512Digest())
 
     override def signature(message: Array[Byte]): Array[Byte] = {
       signer.init(true, privKey)
@@ -46,7 +46,7 @@ package object signature {
     val provider: Provider
     val pubKey: PublicKey
 
-    private val signer  = Signature.getInstance(algorithm, provider)
+    private val signer = Signature.getInstance(algorithm, provider)
 
     override def verify(message: Array[Byte], signature: Array[Byte]): Boolean = {
       signer.initVerify(pubKey)
@@ -60,7 +60,7 @@ package object signature {
     val provider: Provider
     val privKey: PrivateKey
 
-    private val signer  = Signature.getInstance(algorithm, provider)
+    private val signer = Signature.getInstance(algorithm, provider)
 
     override def signature(message: Array[Byte]): Array[Byte] = {
       signer.initSign(privKey)

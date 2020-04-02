@@ -7,7 +7,8 @@ import pl.abankowski.httpsigner.signature.{RsaSHA512Generator, RsaSHA512Verifier
 final class Rsa(
   override val privKey: AsymmetricKeyParameter,
   override val pubKey: AsymmetricKeyParameter
-) extends RsaSHA512Verifier with RsaSHA512Generator
+) extends RsaSHA512Verifier
+    with RsaSHA512Generator
 
 object Rsa {
   def apply(priv: AsymmetricKeyParameter, pub: AsymmetricKeyParameter) = new Rsa(priv, pub)
