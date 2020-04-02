@@ -9,9 +9,11 @@ class Generic(
   override val provider: Provider,
   override val privKey: PrivateKey,
   override val pubKey: PublicKey
-) extends GVImpl with GGImpl
+) extends GVImpl
+    with GGImpl
 
 object Generic {
+
   def apply(algorithm: String, provider: Provider, privKey: PrivateKey, pubKey: PublicKey) =
     new Generic(algorithm, provider, privKey, pubKey)
 
