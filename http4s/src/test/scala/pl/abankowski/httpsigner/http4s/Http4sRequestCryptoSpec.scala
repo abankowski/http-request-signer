@@ -7,15 +7,20 @@ import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
 import org.http4s.{Headers, Method, Request, Uri}
 import org.http4s.Uri.{Authority, RegName, Scheme}
 import org.scalatest.{FunSpec, Matchers}
-import pl.abankowski.httpsigner.{SignatureInvalid, SignatureMissing, SignatureValid}
+import pl.abankowski.httpsigner.{
+  SignatureInvalid,
+  SignatureMissing,
+  SignatureValid
+}
 import pl.abankowski.httpsigner.signature.rsa.Rsa
 
 class Http4sRequestCryptoSpec extends FunSpec with Matchers {
-  private implicit val ctx = IO.contextShift(scala.concurrent.ExecutionContext.global)
+  private implicit val ctx =
+    IO.contextShift(scala.concurrent.ExecutionContext.global)
 
   describe("Having Http4sRequestSigner set up") {
 
-    val keySizeBits = 2^1024
+    val keySizeBits = 2 ^ 1024
     val strength = 12
 
     import java.math.BigInteger
@@ -24,7 +29,8 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
     val publicExponent = BigInteger.valueOf(0x10001)
 
     val rnd = SecureRandom.getInstanceStrong
-    val rsagp = new RSAKeyGenerationParameters(publicExponent, rnd, keySizeBits, strength)
+    val rsagp =
+      new RSAKeyGenerationParameters(publicExponent, rnd, keySizeBits, strength)
 
     val rsag = new RSAKeyPairGenerator
     rsag.init(rsagp)
@@ -32,9 +38,8 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
     val crypto1 = Rsa(rsag.generateKeyPair())
     val crypto2 = Rsa(rsag.generateKeyPair())
 
-    var signer1: Http4sRequestCrypto = new Http4sRequestCrypto(crypto1)
-    var signer2: Http4sRequestCrypto = new Http4sRequestCrypto(crypto2)
-
+    var signer1: Http4sRequestCrypto[IO] = new Http4sRequestCrypto[IO](crypto1)
+    var signer2: Http4sRequestCrypto[IO] = new Http4sRequestCrypto[IO](crypto2)
 
     it("should generate a signature") {
       val baseUri = Uri.apply(
@@ -45,11 +50,13 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val req = Request[IO](
         method = Method.GET,
         uri = baseUri.withPath("/foo"),
-        headers = Headers.empty)
+        headers = Headers.empty
+      )
 
       val signed = signer1.sign(req).unsafeRunSync()
 
-      val signature = signed.headers.find(_.name.value == signer1.config.signatureHeaderName)
+      val signature =
+        signed.headers.find(_.name.value == signer1.config.signatureHeaderName)
 
       signature shouldBe defined
 
@@ -65,13 +72,16 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val req = Request[IO](
         method = Method.GET,
         uri = baseUri.withPath("/foo"),
-        headers = Headers.empty)
+        headers = Headers.empty
+      )
 
       val signed1 = signer1.sign(req).unsafeRunSync()
       val signed2 = signer2.sign(req).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name.value == signer1.config.signatureHeaderName)
-      val signature2 = signed2.headers.find(_.name.value == signer2.config.signatureHeaderName)
+      val signature1 =
+        signed1.headers.find(_.name.value == signer1.config.signatureHeaderName)
+      val signature2 =
+        signed2.headers.find(_.name.value == signer2.config.signatureHeaderName)
 
       signature1 shouldBe defined
       signature2 shouldBe defined
@@ -88,7 +98,8 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val req1 = Request[IO](
         method = Method.GET,
         uri = baseUri1.withPath("/foo"),
-        headers = Headers.empty)
+        headers = Headers.empty
+      )
 
       val baseUri2 = Uri.apply(
         Some(Scheme.http),
@@ -98,14 +109,16 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val req2 = Request[IO](
         method = Method.GET,
         uri = baseUri2.withPath("/foo"),
-        headers = Headers.empty)
-
+        headers = Headers.empty
+      )
 
       val signed1 = signer1.sign(req1).unsafeRunSync()
       val signed2 = signer1.sign(req2).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name.value == signer1.config.signatureHeaderName)
-      val signature2 = signed2.headers.find(_.name.value == signer1.config.signatureHeaderName)
+      val signature1 =
+        signed1.headers.find(_.name.value == signer1.config.signatureHeaderName)
+      val signature2 =
+        signed2.headers.find(_.name.value == signer1.config.signatureHeaderName)
 
       signature1 shouldBe defined
       signature2 shouldBe defined
@@ -122,11 +135,12 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val req = Request[IO](
         method = Method.GET,
         uri = baseUri.withPath("/foo"),
-        headers = Headers.empty)
+        headers = Headers.empty
+      )
 
       val signed = signer1.sign(req).unsafeRunSync()
 
-      signer1.verify(signed).unsafeRunSync() shouldEqual(SignatureValid)
+      signer1.verify(signed).unsafeRunSync() shouldEqual (SignatureValid)
     }
 
     it("should reject invalid signature") {
@@ -138,13 +152,13 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val req = Request[IO](
         method = Method.GET,
         uri = baseUri.withPath("/foo"),
-        headers = Headers.empty)
+        headers = Headers.empty
+      )
 
       val signed = signer1.sign(req).unsafeRunSync()
 
-      signer2.verify(signed).unsafeRunSync() shouldEqual(SignatureInvalid)
+      signer2.verify(signed).unsafeRunSync() shouldEqual (SignatureInvalid)
     }
-
 
     it("should not find a signature") {
       val baseUri = Uri.apply(
@@ -155,9 +169,10 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val req = Request[IO](
         method = Method.GET,
         uri = baseUri.withPath("/foo"),
-        headers = Headers.empty)
+        headers = Headers.empty
+      )
 
-      signer2.verify(req).unsafeRunSync() shouldEqual(SignatureMissing)
+      signer2.verify(req).unsafeRunSync() shouldEqual (SignatureMissing)
     }
   }
 }
