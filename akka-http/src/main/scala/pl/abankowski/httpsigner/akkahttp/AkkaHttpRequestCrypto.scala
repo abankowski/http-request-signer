@@ -1,30 +1,33 @@
 package pl.abankowski.httpsigner.akkahttp
 
 import akka.stream.Materializer
-import cats.effect.{ContextShift, IO}
+import cats.effect.{Async, ContextShift}
 import pl.abankowski.httpsigner.signature.{Generator, Verifier}
 import pl.abankowski.httpsigner.HttpCryptoConfig
 
 import scala.language.{higherKinds, postfixOps}
 
-final class AkkaHttpRequestSigner(
+final class AkkaHttpRequestSigner[F[_]](
   override val crypto: Generator,
-  override val config: HttpCryptoConfig = new HttpCryptoConfig {})(
-  override implicit val mat: Materializer, val ctx: ContextShift[IO])
-  extends pl.abankowski.httpsigner.akkahttp.impl.AkkaHttpRequestSigner {
-}
+  override val config: HttpCryptoConfig = new HttpCryptoConfig {}
+)(override implicit val mat: Materializer,
+  val ctx: ContextShift[F],
+  val F: Async[F])
+    extends pl.abankowski.httpsigner.akkahttp.impl.AkkaHttpRequestSigner[F] {}
 
-final class AkkaHttpRequestVerifier(
+final class AkkaHttpRequestVerifier[F[_]](
   override val crypto: Verifier,
-  override val config: HttpCryptoConfig = new HttpCryptoConfig {})(
-  override implicit val mat: Materializer, val ctx: ContextShift[IO])
-  extends pl.abankowski.httpsigner.akkahttp.impl.AkkaHttpRequestVerifier {
-}
+  override val config: HttpCryptoConfig = new HttpCryptoConfig {}
+)(override implicit val mat: Materializer,
+  val ctx: ContextShift[F],
+  val F: Async[F])
+    extends pl.abankowski.httpsigner.akkahttp.impl.AkkaHttpRequestVerifier[F] {}
 
-final class AkkaHttpRequestCrypto(
+final class AkkaHttpRequestCrypto[F[_]](
   override val crypto: Generator with Verifier,
-  override val config: HttpCryptoConfig = new HttpCryptoConfig {})(
-  override implicit val mat: Materializer, val ctx: ContextShift[IO])
-  extends pl.abankowski.httpsigner.akkahttp.impl.AkkaHttpRequestSigner
-    with pl.abankowski.httpsigner.akkahttp.impl.AkkaHttpRequestVerifier {
-}
+  override val config: HttpCryptoConfig = new HttpCryptoConfig {}
+)(override implicit val mat: Materializer,
+  val ctx: ContextShift[F],
+  val F: Async[F])
+    extends pl.abankowski.httpsigner.akkahttp.impl.AkkaHttpRequestSigner[F]
+    with pl.abankowski.httpsigner.akkahttp.impl.AkkaHttpRequestVerifier[F] {}
