@@ -23,7 +23,7 @@ case object SignatureInvalid extends SignatureVerificationResult
 
 trait HttpSigner[M, F[_]] {
   val crypto: Generator
-  def sign(messasge: M): F[M]
+  def sign(message: M): F[M]
 
   protected def calculateSignature(message: Array[Byte]): String = Base64.toBase64String(crypto.signature(message))
 }
