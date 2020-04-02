@@ -3,7 +3,13 @@ package requestsigner
 import java.security.SecureRandom
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{HttpHeader, HttpMethods, HttpRequest => AkkaHttpRequest, HttpResponse => AkkaHttpResponse, Uri => AkkaUri}
+import akka.http.scaladsl.model.{
+  HttpHeader,
+  HttpMethods,
+  HttpRequest => AkkaHttpRequest,
+  HttpResponse => AkkaHttpResponse,
+  Uri => AkkaUri
+}
 import akka.http.scaladsl.model.Uri.{Host, Path}
 import akka.testkit.TestKit
 import cats.effect.IO
@@ -14,14 +20,14 @@ import org.scalatest.{FunSpec, FunSpecLike, Matchers}
 import pl.abankowski.httpsigner.signature.rsa.Rsa
 import pl.abankowski.httpsigner.SignatureValid
 import pl.abankowski.httpsigner.akkahttp.{AkkaHttpRequestCrypto, AkkaHttpResponseCrypto}
-import pl.abankowski.httpsigner.http4s.{Http4sRequestCrypto, Http4SResponseCrypto}
+import pl.abankowski.httpsigner.http4s.{Http4SResponseCrypto, Http4sRequestCrypto}
 
 class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with Matchers {
   private implicit val ctx = IO.contextShift(scala.concurrent.ExecutionContext.global)
 
   describe("Having all request signers set up") {
 
-    val keySizeBits = 2^1024
+    val keySizeBits = 2 ^ 1024
     val strength = 12
 
     import java.math.BigInteger
@@ -37,16 +43,16 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
 
     val crypto = Rsa(rsag.generateKeyPair())
 
-    var signer1: AkkaHttpRequestCrypto = new AkkaHttpRequestCrypto(crypto)
-    var signer2: Http4sRequestCrypto = new Http4sRequestCrypto(crypto)
+    var signer1: AkkaHttpRequestCrypto[IO] = new AkkaHttpRequestCrypto[IO](crypto)
+    var signer2: Http4sRequestCrypto[IO] = new Http4sRequestCrypto[IO](crypto)
 
     it("they should be compatible") {
       val req = AkkaHttpRequest(
         method = HttpMethods.GET,
         uri = AkkaUri(
           scheme = "http",
-          authority = AkkaUri.Authority(host = Host("example.com"),  port = 9000),
-          path = Path("/foo"),
+          authority = AkkaUri.Authority(host = Host("example.com"), port = 9000),
+          path = Path("/foo")
         ),
         headers = List.empty[HttpHeader]
       )
@@ -63,7 +69,8 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
       val req2 = Request[IO](
         method = Method.GET,
         uri = baseUri.withPath("/foo"),
-        headers = Headers.of(Header(signer2.config.signatureHeaderName, signature1.map(_.value()).getOrElse(""))))
+        headers = Headers.of(Header(signer2.config.signatureHeaderName, signature1.map(_.value()).getOrElse("")))
+      )
 
       val verified = signer2.verify(req2).unsafeRunSync()
 
@@ -73,7 +80,7 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
 
   describe("Having all response signers set up") {
 
-    val keySizeBits = 2^1024
+    val keySizeBits = 2 ^ 1024
     val strength = 12
 
     import java.math.BigInteger
@@ -89,8 +96,8 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
 
     val crypto = Rsa(rsag.generateKeyPair())
 
-    var signer1: AkkaHttpResponseCrypto = new AkkaHttpResponseCrypto(crypto)
-    var signer2: Http4SResponseCrypto = new Http4SResponseCrypto(crypto)
+    var signer1: AkkaHttpResponseCrypto[IO] = new AkkaHttpResponseCrypto[IO](crypto)
+    var signer2: Http4SResponseCrypto[IO] = new Http4SResponseCrypto[IO](crypto)
 
     it("they should be compatible") {
       val res = AkkaHttpResponse(
@@ -102,7 +109,8 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
       val signature1 = signed1.headers.find(_.name == signer1.config.signatureHeaderName)
 
       val res2 = Response[IO](
-        headers = Headers.of(Header(signer1.config.signatureHeaderName, signature1.map(_.value()).getOrElse(""))))
+        headers = Headers.of(Header(signer1.config.signatureHeaderName, signature1.map(_.value()).getOrElse("")))
+      )
 
       val verified = signer2.verify(res2).unsafeRunSync()
 
