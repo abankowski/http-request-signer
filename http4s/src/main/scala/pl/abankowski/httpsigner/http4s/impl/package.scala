@@ -21,7 +21,7 @@ package object impl {
 
     protected def message(request: Request[F]): F[Array[Byte]] =
       F.delay {
-        (List(request.method.name, request.uri.renderString) ++
+        (List(request.method.name, request.uri.path, request.uri.query.renderString) ++
           request.headers.toList.collect({
             case header if config.protectedHeaders.contains(header.name.value) =>
               s"${header.name.value}:${header.value}"

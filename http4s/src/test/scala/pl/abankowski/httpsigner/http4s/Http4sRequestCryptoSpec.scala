@@ -89,7 +89,7 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       signature1.map(_.value) shouldNot equal(signature2.map(_.value))
     }
 
-    it("different uri give different signature") {
+    it("different uri path gives different signature") {
       val baseUri1 = Uri.apply(
         Some(Scheme.http),
         Some(Authority(host = RegName("example.com"), port = Some(9000)))
@@ -103,12 +103,49 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
 
       val baseUri2 = Uri.apply(
         Some(Scheme.http),
-        Some(Authority(host = RegName("example.pl"), port = Some(9000)))
+        Some(Authority(host = RegName("example.com"), port = Some(9000)))
       )
 
       val req2 = Request[IO](
         method = Method.GET,
-        uri = baseUri2.withPath("/foo"),
+        uri = baseUri2.withPath("/bar"),
+        headers = Headers.empty
+      )
+
+      val signed1 = signer1.sign(req1).unsafeRunSync()
+      val signed2 = signer1.sign(req2).unsafeRunSync()
+
+      val signature1 =
+        signed1.headers.find(_.name.value == signer1.config.signatureHeaderName)
+      val signature2 =
+        signed2.headers.find(_.name.value == signer1.config.signatureHeaderName)
+
+      signature1 shouldBe defined
+      signature2 shouldBe defined
+
+      signature1.map(_.value) shouldNot equal(signature2.map(_.value))
+    }
+
+    it("different uri query part gives different signature") {
+      val baseUri1 = Uri.apply(
+        Some(Scheme.http),
+        Some(Authority(host = RegName("example.com"), port = Some(9000)))
+      ).withQueryParam("foo","bar")
+
+      val req1 = Request[IO](
+        method = Method.GET,
+        uri = baseUri1.withPath("/foo"),
+        headers = Headers.empty
+      )
+
+      val baseUri2 = Uri.apply(
+        Some(Scheme.http),
+        Some(Authority(host = RegName("example.com"), port = Some(9000)))
+      ).withQueryParam("foo","baz")
+
+      val req2 = Request[IO](
+        method = Method.GET,
+        uri = baseUri2.withPath("/bar"),
         headers = Headers.empty
       )
 
