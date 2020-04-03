@@ -28,7 +28,7 @@ package object impl {
       request: HttpRequest
     )(implicit mat: Materializer, ctx: ContextShift[F], F: Async[F]) =
       F.delay {
-        (List(request.method.value, request.uri.toString()) ++
+        (List(request.method.value, request.uri.path.toString()) ++ request.uri.rawQueryString ++
           request.headers.collect({
             case header if config.protectedHeaders.contains(header.name()) =>
               s"${header.name()}:${header.value()}"

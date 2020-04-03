@@ -92,7 +92,7 @@ class AkkaHttpRequestCryptoSpec
       signature1.map(_.value) shouldNot equal(signature2.map(_.value))
     }
 
-    it("different uri give different signature") {
+    it("different uri path gives different signature") {
       val uri1 = Uri(scheme = "https", path = Path("/foo"))
 
       val req1 = HttpRequest(
@@ -102,6 +102,37 @@ class AkkaHttpRequestCryptoSpec
       )
 
       val uri2 = Uri(scheme = "https", path = Path("/bar"))
+
+      val req2 = HttpRequest(
+        method = HttpMethods.GET,
+        uri = uri2,
+        headers = List.empty[HttpHeader]
+      )
+
+      val signed1 = signer1.sign(req1).unsafeRunSync()
+      val signed2 = signer1.sign(req2).unsafeRunSync()
+
+      val signature1 =
+        signed1.headers.find(_.name == signer1.config.signatureHeaderName)
+      val signature2 =
+        signed2.headers.find(_.name == signer1.config.signatureHeaderName)
+
+      signature1 shouldBe defined
+      signature2 shouldBe defined
+
+      signature1.map(_.value) shouldNot equal(signature2.map(_.value))
+    }
+
+    it("different uri query gives different signature") {
+      val uri1 = Uri(scheme = "https", path = Path("/foo"), queryString = Some("bar=baz"))
+
+      val req1 = HttpRequest(
+        method = HttpMethods.GET,
+        uri = uri1,
+        headers = List.empty[HttpHeader]
+      )
+
+      val uri2 = Uri(scheme = "https", path = Path("/foo"), queryString = Some("bar=bar"))
 
       val req2 = HttpRequest(
         method = HttpMethods.GET,

@@ -52,7 +52,8 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
         uri = AkkaUri(
           scheme = "http",
           authority = AkkaUri.Authority(host = Host("example.com"), port = 9000),
-          path = Path("/foo")
+          path = Path("/foo"),
+          queryString = Some("foo=bar")
         ),
         headers = List.empty[HttpHeader]
       )
@@ -64,7 +65,7 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
       val baseUri = Uri.apply(
         Some(Scheme.http),
         Some(Authority(host = RegName("example.com"), port = Some(9000)))
-      )
+      ).withQueryParam("foo", "bar")
 
       val req2 = Request[IO](
         method = Method.GET,
