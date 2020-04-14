@@ -5,7 +5,7 @@ lazy val scala211 = "2.13.1"
 lazy val supportedScalaVersions = List(scala212, scala211)
 
 ThisBuild / organization := "pl.abankowski"
-ThisBuild / version := "0.3.1"
+ThisBuild / version := "0.3.2"
 ThisBuild / scalaVersion := scala212
 
 lazy val versions = new {
@@ -28,7 +28,7 @@ lazy val akkaHttpDependencies = Seq(
 lazy val catsDependencies = Seq(
   "org.typelevel" %% "cats-effect",
   "org.typelevel" %% "cats-core"
-).map(_ % versions.catsVersion)
+).map(_ % versions.catsVersion) ++ Seq("io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1")
 
 lazy val testDependencies = Seq(
   "org.scalatest" %% "scalatest" % "3.0.8",
@@ -40,7 +40,7 @@ lazy val core = (project in file("core"))
   .settings(
     name := "http-request-signer-core",
     crossScalaVersions := supportedScalaVersions,
-    libraryDependencies ++= Seq("org.bouncycastle" % "bcprov-jdk15on" % "1.64"),
+    libraryDependencies ++= Seq("org.bouncycastle" % "bcprov-jdk15on" % "1.64") ++ catsDependencies,
     licenses += ("Apache-2.0", url("http://opensource.org/licenses/Apache-2.0"))
   )
 
