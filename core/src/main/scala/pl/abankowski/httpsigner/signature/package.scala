@@ -21,7 +21,7 @@ package object signature {
     val pubKey: AsymmetricKeyParameter
     private val signer = new RSADigestSigner(new SHA512Digest())
 
-    override def verify(message: Array[Byte], signature: Array[Byte]): Boolean = {
+    override def verify(message: Array[Byte], signature: Array[Byte]): Boolean = this.synchronized {
       signer.init(false, pubKey)
       signer.update(message, 0, message.length)
       signer.verifySignature(signature)
@@ -33,7 +33,7 @@ package object signature {
     val privKey: AsymmetricKeyParameter
     private val signer = new RSADigestSigner(new SHA512Digest())
 
-    override def signature(message: Array[Byte]): Array[Byte] = {
+    override def signature(message: Array[Byte]): Array[Byte] = this.synchronized {
       signer.init(true, privKey)
       signer.update(message, 0, message.length)
       signer.generateSignature()
@@ -48,7 +48,7 @@ package object signature {
 
     private val signer = Signature.getInstance(algorithm, provider)
 
-    override def verify(message: Array[Byte], signature: Array[Byte]): Boolean = {
+    override def verify(message: Array[Byte], signature: Array[Byte]): Boolean = this.synchronized {
       signer.initVerify(pubKey)
       signer.update(message)
       signer.verify(signature)
@@ -62,7 +62,7 @@ package object signature {
 
     private val signer = Signature.getInstance(algorithm, provider)
 
-    override def signature(message: Array[Byte]): Array[Byte] = {
+    override def signature(message: Array[Byte]): Array[Byte] = this.synchronized {
       signer.initSign(privKey)
       signer.update(message)
       signer.sign()

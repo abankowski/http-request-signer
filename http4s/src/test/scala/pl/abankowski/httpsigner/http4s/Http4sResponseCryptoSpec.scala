@@ -3,15 +3,14 @@ package pl.abankowski.httpsigner.http4s
 import java.security.SecureRandom
 
 import cats.effect.IO
+import fs2.Stream
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
 import org.http4s.{Headers, Response}
 import org.scalatest.{FunSpec, Matchers}
-import pl.abankowski.httpsigner.{
-  SignatureInvalid,
-  SignatureMissing,
-  SignatureValid
-}
+import pl.abankowski.httpsigner.{SignatureInvalid, SignatureMissing, SignatureValid}
 import pl.abankowski.httpsigner.signature.rsa.Rsa
+import cats._
+import cats.implicits._
 
 class Http4sResponseCryptoSpec extends FunSpec with Matchers {
   private implicit val ctx =
@@ -94,6 +93,22 @@ class Http4sResponseCryptoSpec extends FunSpec with Matchers {
       val res = Response[IO](headers = Headers.empty)
 
       signer2.verify(res).unsafeRunSync() shouldEqual (SignatureMissing)
+    }
+
+    it("should not drop response paylaod") {
+
+      val bodyText = "this is message content"
+
+      val body = Stream.emits(bodyText.getBytes.toList).covary[IO]
+
+
+      val res = Response[IO](headers = Headers.empty, body = body)
+
+      val signed = signer1.sign(res).unsafeRunSync()
+
+      signer1.verify(signed).unsafeRunSync() shouldEqual (SignatureValid)
+
+      res.as[String].unsafeRunSync() shouldEqual bodyText
     }
   }
 }

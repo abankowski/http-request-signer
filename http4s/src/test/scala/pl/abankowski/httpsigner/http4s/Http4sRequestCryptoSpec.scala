@@ -211,5 +211,6 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
 
       signer2.verify(req).unsafeRunSync() shouldEqual (SignatureMissing)
     }
+
   }
 }
