@@ -109,7 +109,7 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val req2 = Request[IO](
         method = Method.GET,
         uri = baseUri2.withPath("/bar"),
-        headers = Headers.empty
+        headers = Headers.empty,
       )
 
       val signed1 = signer1.sign(req1).unsafeRunSync()
@@ -211,6 +211,5 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
 
       signer2.verify(req).unsafeRunSync() shouldEqual (SignatureMissing)
     }
-
   }
 }

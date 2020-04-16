@@ -6,7 +6,6 @@ import cats.effect.{ContextShift, Sync}
 import cats.implicits._
 import org.http4s.{Header, Headers, Request, Response}
 import io.chrisdavenport.log4cats.Logger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import pl.abankowski.httpsigner.{HttpCryptoConfig, HttpSigner, HttpVerifier, SignatureMissing, SignatureVerificationResult}
 
 package object impl {
@@ -49,12 +48,15 @@ package object impl {
 
     protected def message(response: Response[F]): F[Array[Byte]] =
       F.delay {
+        val buffer = new ByteArrayOutputStream()
+        buffer.write(response.status.code)
+
         response.headers.toList
           .collect({
             case header if config.protectedHeaders.contains(header.name.value) =>
               s"${header.name.value}:${header.value}"
           })
-          .foldLeft(new ByteArrayOutputStream()) { (buffer, value) =>
+          .foldLeft(buffer) { (buffer, value) =>
             buffer.write(value.getBytes)
             buffer
           }

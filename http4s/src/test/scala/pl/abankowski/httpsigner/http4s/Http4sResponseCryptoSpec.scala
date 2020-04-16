@@ -5,7 +5,7 @@ import java.security.SecureRandom
 import cats.effect.IO
 import fs2.Stream
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator
-import org.http4s.{Headers, Response}
+import org.http4s.{Headers, Response, Status}
 import org.scalatest.{FunSpec, Matchers}
 import pl.abankowski.httpsigner.{SignatureInvalid, SignatureMissing, SignatureValid}
 import pl.abankowski.httpsigner.signature.rsa.Rsa
@@ -27,8 +27,7 @@ class Http4sResponseCryptoSpec extends FunSpec with Matchers {
     val publicExponent = BigInteger.valueOf(0x10001)
 
     val rnd = SecureRandom.getInstanceStrong
-    val rsagp =
-      new RSAKeyGenerationParameters(publicExponent, rnd, keySizeBits, strength)
+    val rsagp = new RSAKeyGenerationParameters(publicExponent, rnd, keySizeBits, strength)
 
     val rsag = new RSAKeyPairGenerator
     rsag.init(rsagp)
@@ -80,13 +79,22 @@ class Http4sResponseCryptoSpec extends FunSpec with Matchers {
       signer1.verify(signed).unsafeRunSync() shouldEqual (SignatureValid)
     }
 
-    it("should reject invalid signature") {
+    it("should reject invalid signature (wrong key)") {
 
       val res = Response[IO](headers = Headers.empty)
 
       val signed = signer1.sign(res).unsafeRunSync()
 
       signer2.verify(signed).unsafeRunSync() shouldEqual (SignatureInvalid)
+    }
+
+    it("should reject when invalid signature (tainted message)") {
+
+      val res = Response[IO](headers = Headers.empty).withStatus(Status.Ok)
+
+      val signed = signer1.sign(res).unsafeRunSync().withStatus(Status.NotFound)
+
+      signer1.verify(signed).unsafeRunSync() shouldEqual (SignatureInvalid)
     }
 
     it("should not find a signature") {

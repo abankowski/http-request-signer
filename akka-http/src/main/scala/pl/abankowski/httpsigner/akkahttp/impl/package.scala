@@ -52,22 +52,24 @@ package object impl {
     val config: HttpCryptoConfig
 
     protected def message(
-      request: HttpResponse
+      response: HttpResponse
     )(implicit mat: Materializer, ctx: ContextShift[F], F: Async[F]) =
       F.delay {
-        request.headers
+        val buffer = new ByteArrayOutputStream()
+        buffer.write(response.status.intValue())
+        response.headers
           .collect({
             case header if config.protectedHeaders.contains(header.name()) =>
               s"${header.name()}:${header.value()}"
           })
-          .foldLeft(new ByteArrayOutputStream()) { (buffer, value) =>
+          .foldLeft(buffer) { (buffer, value) =>
             buffer.write(value.getBytes)
             buffer
           }
       }.flatMap(content =>
         Async
           .fromFuture(F.delay {
-            request.entity.toStrict(10 seconds)
+            response.entity.toStrict(10 seconds)
           })
           .map { e =>
             content.write(e.getData().toArray)
