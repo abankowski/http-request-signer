@@ -8,6 +8,9 @@ ThisBuild / organization := "pl.abankowski"
 ThisBuild / version := "0.3.4"
 ThisBuild / scalaVersion := scala212
 
+ThisBuild / githubOwner := "abankowski"
+ThisBuild / githubRepository := "http-request-signer"
+
 lazy val versions = new {
   val akkaHttp = "10.1.9"
   val akkaStream = "2.6.0"
