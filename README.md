@@ -1,12 +1,6 @@
 # Http Requests Signer
 
-![publish](https://github.com/abankowski/http-request-signer/workflows/publish/badge.svg?branch=master&event=release)
 ![https://github.com/abankowski/http-request-signer/workflows/tests/badge.svg?branch=master](https://github.com/abankowski/http-request-signer/workflows/tests/badge.svg?branch=master)
-
-This library is published in repository on Bintray https://bintray.com/abankowski/maven - to make it available in your build
-just add a resolver to my private repo:
-
-    resolvers += Resolver.bintrayRepo("abankowski", "maven")
 
 Available implementations for http4s and akka-http are published as separate jars. Both are cross compiled for Scala 2.12 and 2.13.
 
