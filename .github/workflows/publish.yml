@@ -22,4 +22,5 @@ jobs:
       - name: Publish
         run: sbt "++ 2.12.10" publish "++ 2.13.1" publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JFROG_USER: ${{ secrets.JFROG_USER }}
+          JFROG_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
