@@ -16,12 +16,12 @@ import pl.abankowski.httpsigner.{
 import pl.abankowski.httpsigner.akkahttp.AkkaHttpResponseCrypto
 import pl.abankowski.httpsigner.signature.rsa.Rsa
 
+import cats.effect.unsafe.implicits.global
+
 class AkkaHttpResponseCryptoSpec
     extends TestKit(ActorSystem("MySpec"))
     with FunSpecLike
     with Matchers {
-  private implicit val ctx =
-    IO.contextShift(scala.concurrent.ExecutionContext.global)
 
   describe("Having Http4sResponseSigner set up") {
 

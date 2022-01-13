@@ -22,8 +22,9 @@ import pl.abankowski.httpsigner.SignatureValid
 import pl.abankowski.httpsigner.akkahttp.{AkkaHttpRequestCrypto, AkkaHttpResponseCrypto}
 import pl.abankowski.httpsigner.http4s.{Http4SResponseCrypto, Http4sRequestCrypto}
 
+import cats.effect.unsafe.implicits.global
+
 class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with Matchers {
-  private implicit val ctx = IO.contextShift(scala.concurrent.ExecutionContext.global)
 
   describe("Having all request signers set up") {
 

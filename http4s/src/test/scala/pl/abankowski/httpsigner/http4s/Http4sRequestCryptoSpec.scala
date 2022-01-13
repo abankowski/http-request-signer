@@ -14,10 +14,9 @@ import pl.abankowski.httpsigner.{
 }
 import pl.abankowski.httpsigner.signature.rsa.Rsa
 
-class Http4sRequestCryptoSpec extends FunSpec with Matchers {
-  private implicit val ctx =
-    IO.contextShift(scala.concurrent.ExecutionContext.global)
+import cats.effect.unsafe.implicits.global
 
+class Http4sRequestCryptoSpec extends FunSpec with Matchers {
   describe("Having Http4sRequestSigner set up") {
 
     val keySizeBits = 2 ^ 1024
@@ -56,7 +55,7 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val signed = signer1.sign(req).unsafeRunSync()
 
       val signature =
-        signed.headers.find(_.name.value == signer1.config.signatureHeaderName)
+        signed.headers.headers.find(_.name.value == signer1.config.signatureHeaderName)
 
       signature shouldBe defined
 
@@ -79,9 +78,9 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val signed2 = signer2.sign(req).unsafeRunSync()
 
       val signature1 =
-        signed1.headers.find(_.name.value == signer1.config.signatureHeaderName)
+        signed1.headers.headers.find(_.name.value == signer1.config.signatureHeaderName)
       val signature2 =
-        signed2.headers.find(_.name.value == signer2.config.signatureHeaderName)
+        signed2.headers.headers.find(_.name.value == signer2.config.signatureHeaderName)
 
       signature1 shouldBe defined
       signature2 shouldBe defined
@@ -116,9 +115,9 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val signed2 = signer1.sign(req2).unsafeRunSync()
 
       val signature1 =
-        signed1.headers.find(_.name.value == signer1.config.signatureHeaderName)
+        signed1.headers.headers.find(_.name.value == signer1.config.signatureHeaderName)
       val signature2 =
-        signed2.headers.find(_.name.value == signer1.config.signatureHeaderName)
+        signed2.headers.headers.find(_.name.value == signer1.config.signatureHeaderName)
 
       signature1 shouldBe defined
       signature2 shouldBe defined
@@ -153,9 +152,9 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val signed2 = signer1.sign(req2).unsafeRunSync()
 
       val signature1 =
-        signed1.headers.find(_.name.value == signer1.config.signatureHeaderName)
+        signed1.headers.headers.find(_.name.value == signer1.config.signatureHeaderName)
       val signature2 =
-        signed2.headers.find(_.name.value == signer1.config.signatureHeaderName)
+        signed2.headers.headers.find(_.name.value == signer1.config.signatureHeaderName)
 
       signature1 shouldBe defined
       signature2 shouldBe defined

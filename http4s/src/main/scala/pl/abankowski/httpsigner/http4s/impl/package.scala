@@ -2,10 +2,10 @@ package pl.abankowski.httpsigner.http4s
 
 import java.io.ByteArrayOutputStream
 
-import cats.effect.{ContextShift, Sync}
+import cats.effect.Async
 import cats.implicits._
 import org.http4s.{Header, Headers, Request, Response}
-import io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 import pl.abankowski.httpsigner.{HttpCryptoConfig, HttpSigner, HttpVerifier, SignatureMissing, SignatureVerificationResult}
 
 package object impl {
@@ -21,15 +21,15 @@ package object impl {
   }
 
   trait RequestHelpers[F[_]] extends Helpers{
-    implicit val F: Sync[F]
+    implicit val F: Async[F]
     val config: HttpCryptoConfig
 
     protected def message(request: Request[F]): F[Array[Byte]] =
       F.delay {
-        (List(request.method.name, request.uri.path, request.uri.query.renderString) ++
-          request.headers.toList.collect({
+        (List(request.method.name, request.uri.path.toString(), request.uri.query.renderString) ++
+          request.headers.headers.collect({
             case header if config.protectedHeaders.contains(header.name.value) =>
-              s"${header.name.value}:${header.value}"
+              header.toString()
           })).foldLeft(new ByteArrayOutputStream()) { (buffer, value) =>
           buffer.write(value.getBytes)
           buffer
@@ -43,7 +43,7 @@ package object impl {
   }
 
   trait ResponseHelpers[F[_]] extends Helpers{
-    implicit val F: Sync[F]
+    implicit val F: Async[F]
     val config: HttpCryptoConfig
 
     protected def message(response: Response[F]): F[Array[Byte]] =
@@ -51,7 +51,7 @@ package object impl {
         val buffer = new ByteArrayOutputStream()
         buffer.write(response.status.code)
 
-        response.headers.toList
+        response.headers.headers
           .collect({
             case header if config.protectedHeaders.contains(header.name.value) =>
               s"${header.name.value}:${header.value}"
@@ -69,7 +69,6 @@ package object impl {
   }
 
   trait Http4sRequestSigner[F[_]] extends HttpSigner[Request[F], F] with RequestHelpers[F] {
-    implicit val ctx: ContextShift[F]
     protected val logger: Logger[F]
 
     override def sign(request: Request[F]): F[Request[F]] =
@@ -80,20 +79,19 @@ package object impl {
             .map(_ =>
               request.withHeaders(
                 Headers(
-                  Header(config.signatureHeaderName, signature) :: request.headers.toList
+                  Header(config.signatureHeaderName, signature) :: request.headers.headers
                 )
             ))
         }
   }
 
   trait Http4sRequestVerifier[F[_]] extends HttpVerifier[Request[F], F] with RequestHelpers[F] {
-    implicit val ctx: ContextShift[F]
-    implicit val F: Sync[F]
+    implicit val F: Async[F]
     val config: HttpCryptoConfig
     protected val logger: Logger[F]
 
     override def verify(request: Request[F]): F[SignatureVerificationResult] =
-      request.headers
+      request.headers.headers
         .find(_.name.value == config.signatureHeaderName)
         .map(signature =>
           message(request).map{ msg =>
@@ -107,8 +105,7 @@ package object impl {
    }
 
   trait Http4sResponseSigner[F[_]] extends HttpSigner[Response[F], F] with ResponseHelpers[F] {
-    implicit val ctx: ContextShift[F]
-    implicit val F: Sync[F]
+    implicit val F: Async[F]
     val config: HttpCryptoConfig
     protected val logger: Logger[F]
 
@@ -124,13 +121,12 @@ package object impl {
   }
 
   trait Http4sResponseVerifier[F[_]] extends HttpVerifier[Response[F], F] with ResponseHelpers[F] {
-    implicit val ctx: ContextShift[F]
-    implicit val F: Sync[F]
+    implicit val F: Async[F]
     val config: HttpCryptoConfig
     protected val logger: Logger[F]
 
     override def verify(response: Response[F]): F[SignatureVerificationResult] =
-      response.headers
+      response.headers.headers
         .find(_.name.value == config.signatureHeaderName)
         .map(signature =>
           message(response).map{ msg =>
