@@ -8,8 +8,8 @@ ThisBuild / organization := "pl.abankowski"
 ThisBuild / version := "0.4.0"
 ThisBuild / scalaVersion := scala212
 
-ThisBuild / publishTo := Some("Artifactory Realm" at "https://abankowski.jfrog.io/artifactory/scala")
-ThisBuild / credentials += Credentials("Artifactory Realm", "abankowski.jfrog.io", sys.env.getOrElse("JFROG_USER", ""), sys.env.getOrElse("JFROG_PASSWORD", ""))
+ThisBuild / githubOwner := "abankowski"
+ThisBuild / githubRepository := "http-request-signer"
 
 lazy val versions = new {
   val akkaHttp = "10.1.9"
