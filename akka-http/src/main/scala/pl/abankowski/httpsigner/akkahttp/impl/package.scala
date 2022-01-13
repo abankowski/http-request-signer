@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.Materializer
-import cats.effect.{Async, ContextShift}
+import cats.effect.Async
 import cats.implicits._
 import pl.abankowski.httpsigner.{
   HttpCryptoConfig,
@@ -20,13 +20,11 @@ import scala.concurrent.duration._
 package object impl {
 
   trait RequestHelpers[F[_]] {
-    implicit val ctx: ContextShift[F]
-
     val config: HttpCryptoConfig
 
     protected def message(
       request: HttpRequest
-    )(implicit mat: Materializer, ctx: ContextShift[F], F: Async[F]) =
+    )(implicit mat: Materializer, F: Async[F]) =
       F.delay {
         (List(request.method.value, request.uri.path.toString()) ++ request.uri.rawQueryString ++
           request.headers.collect({
@@ -37,7 +35,7 @@ package object impl {
           buffer
         }
       }.flatMap(content =>
-        Async
+        Async[F]
           .fromFuture(F.delay {
             request.entity.toStrict(10 seconds)
           })
@@ -53,7 +51,7 @@ package object impl {
 
     protected def message(
       response: HttpResponse
-    )(implicit mat: Materializer, ctx: ContextShift[F], F: Async[F]) =
+    )(implicit mat: Materializer, F: Async[F]) =
       F.delay {
         val buffer = new ByteArrayOutputStream()
         buffer.write(response.status.intValue())
@@ -67,7 +65,7 @@ package object impl {
             buffer
           }
       }.flatMap(content =>
-        Async
+        Async[F]
           .fromFuture(F.delay {
             response.entity.toStrict(10 seconds)
           })
@@ -80,7 +78,6 @@ package object impl {
 
   trait AkkaHttpRequestSigner[F[_]] extends HttpSigner[HttpRequest, F] with RequestHelpers[F] {
     implicit val mat: Materializer
-    implicit val ctx: ContextShift[F]
     implicit val F: Async[F]
 
     override def sign(request: HttpRequest): F[HttpRequest] =
@@ -91,7 +88,6 @@ package object impl {
 
   trait AkkaHttpRequestVerifier[F[_]] extends HttpVerifier[HttpRequest, F] with RequestHelpers[F] {
     implicit val mat: Materializer
-    implicit val ctx: ContextShift[F]
     implicit val F: Async[F]
 
     val config: HttpCryptoConfig
@@ -108,7 +104,6 @@ package object impl {
 
   trait AkkaHttpResponseSigner[F[_]] extends HttpSigner[HttpResponse, F] with ResponseHelpers[F] {
     implicit val mat: Materializer
-    implicit val ctx: ContextShift[F]
     implicit val F: Async[F]
 
     override def sign(response: HttpResponse): F[HttpResponse] =
@@ -119,7 +114,6 @@ package object impl {
 
   trait AkkaHttpResponseVerifier[F[_]] extends HttpVerifier[HttpResponse, F] with ResponseHelpers[F] {
     implicit val mat: Materializer
-    implicit val ctx: ContextShift[F]
     implicit val F: Async[F]
     val config: HttpCryptoConfig
 
