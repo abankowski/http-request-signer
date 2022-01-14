@@ -5,10 +5,14 @@ on:
     types:
       - created
 
+permissions: read-all
+
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      packages: write
     steps:
       - uses: actions/checkout@v1
         with:
