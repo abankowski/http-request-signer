@@ -26,4 +26,4 @@ jobs:
       - name: Publish
         run: sbt "++ 2.12.10" publish "++ 2.13.1" publish
         env:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
