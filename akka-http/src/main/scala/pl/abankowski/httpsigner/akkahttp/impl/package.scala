@@ -28,7 +28,7 @@ package object impl {
       F.delay {
         (List(request.method.value, request.uri.path.toString()) ++ request.uri.rawQueryString ++
           request.headers.collect({
-            case header if config.protectedHeaders.contains(header.name()) =>
+            case header if config.protectedHeaders.map(_.toString).contains(header.name()) =>
               s"${header.name()}:${header.value()}"
           })).foldLeft(new ByteArrayOutputStream()) { (buffer, value) =>
           buffer.write(value.getBytes)
@@ -57,7 +57,7 @@ package object impl {
         buffer.write(response.status.intValue())
         response.headers
           .collect({
-            case header if config.protectedHeaders.contains(header.name()) =>
+            case header if config.protectedHeaders.map(_.toString).contains(header.name()) =>
               s"${header.name()}:${header.value()}"
           })
           .foldLeft(buffer) { (buffer, value) =>
@@ -94,7 +94,7 @@ package object impl {
 
     override def verify(request: HttpRequest): F[SignatureVerificationResult] =
       request.headers
-        .find(_.name() == config.signatureHeaderName)
+        .find(_.name().equalsIgnoreCase(config.signatureHeaderName.toString))
         .map(signature =>
           message(request)
             .map(message => verifySignature(message, signature.value()))
@@ -121,7 +121,7 @@ package object impl {
       response: HttpResponse
     ): F[SignatureVerificationResult] =
       response.headers
-        .find(_.name() == config.signatureHeaderName)
+        .find(_.name().equalsIgnoreCase(config.signatureHeaderName.toString))
         .map(signature =>
           message(response)
             .map(message => verifySignature(message, signature.value()))

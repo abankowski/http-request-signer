@@ -55,7 +55,7 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val signed = signer1.sign(req).unsafeRunSync()
 
       val signature =
-        signed.headers.headers.find(_.name.toString == signer1.config.signatureHeaderName)
+        signed.headers.headers.find(_.name.equals(signer1.config.signatureHeaderName))
 
       signature shouldBe defined
 
@@ -78,9 +78,9 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val signed2 = signer2.sign(req).unsafeRunSync()
 
       val signature1 =
-        signed1.headers.headers.find(_.name.toString == signer1.config.signatureHeaderName)
+        signed1.headers.headers.find(_.name.equals(signer1.config.signatureHeaderName))
       val signature2 =
-        signed2.headers.headers.find(_.name.toString == signer2.config.signatureHeaderName)
+        signed2.headers.headers.find(_.name.equals(signer2.config.signatureHeaderName))
 
       signature1 shouldBe defined
       signature2 shouldBe defined
@@ -115,9 +115,9 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val signed2 = signer1.sign(req2).unsafeRunSync()
 
       val signature1 =
-        signed1.headers.headers.find(_.name.toString == signer1.config.signatureHeaderName)
+        signed1.headers.headers.find(_.name.equals(signer1.config.signatureHeaderName))
       val signature2 =
-        signed2.headers.headers.find(_.name.toString == signer1.config.signatureHeaderName)
+        signed2.headers.headers.find(_.name.equals(signer1.config.signatureHeaderName))
 
       signature1 shouldBe defined
       signature2 shouldBe defined
@@ -152,9 +152,9 @@ class Http4sRequestCryptoSpec extends FunSpec with Matchers {
       val signed2 = signer1.sign(req2).unsafeRunSync()
 
       val signature1 =
-        signed1.headers.headers.find(_.name.toString == signer1.config.signatureHeaderName)
+        signed1.headers.headers.find(_.name.equals(signer1.config.signatureHeaderName))
       val signature2 =
-        signed2.headers.headers.find(_.name.toString == signer1.config.signatureHeaderName)
+        signed2.headers.headers.find(_.name.equals(signer1.config.signatureHeaderName))
 
       signature1 shouldBe defined
       signature2 shouldBe defined

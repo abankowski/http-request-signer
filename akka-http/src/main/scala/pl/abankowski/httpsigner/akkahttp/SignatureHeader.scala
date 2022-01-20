@@ -13,6 +13,6 @@ final class SignatureHeader(signature: String) extends ModeledCustomHeader[Signa
 }
 
 object SignatureHeader extends ModeledCustomHeaderCompanion[SignatureHeader] with HttpCryptoConfig {
-  override val name = signatureHeaderName
+  override val name = signatureHeaderName.toString
   override def parse(value: String) = Try(new SignatureHeader(value))
 }
