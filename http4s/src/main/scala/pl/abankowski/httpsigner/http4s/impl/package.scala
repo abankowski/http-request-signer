@@ -54,7 +54,7 @@ package object impl {
         response.headers.headers
           .collect({
             case header if config.protectedHeaders.contains(header.name.value) =>
-              s"${header.name.value}:${header.value}"
+              header.toString()
           })
           .foldLeft(buffer) { (buffer, value) =>
             buffer.write(value.getBytes)
