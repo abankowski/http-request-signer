@@ -61,7 +61,7 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
 
       val signed1 = signer1.sign(req).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name == signer1.config.signatureHeaderName)
+      val signature1 = signed1.headers.find(_.name == signer1.config.signatureHeaderName.toString)
 
       val baseUri = Uri.apply(
         Some(Scheme.http),
@@ -71,7 +71,7 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
       val req2 = Request[IO](
         method = Method.GET,
         uri = baseUri.withPath("/foo"),
-        headers = Headers.of(Header(signer2.config.signatureHeaderName, signature1.map(_.value()).getOrElse("")))
+        headers = Headers.of(Header.Raw(signer2.config.signatureHeaderName, signature1.map(_.value()).getOrElse("")))
       )
 
       val verified = signer2.verify(req2).unsafeRunSync()
@@ -108,10 +108,10 @@ class InteropSpec extends TestKit(ActorSystem("MySpec")) with FunSpecLike with M
 
       val signed1 = signer1.sign(res).unsafeRunSync()
 
-      val signature1 = signed1.headers.find(_.name == signer1.config.signatureHeaderName)
+      val signature1 = signed1.headers.find(_.name == signer1.config.signatureHeaderName.toString)
 
       val res2 = Response[IO](
-        headers = Headers.of(Header(signer1.config.signatureHeaderName, signature1.map(_.value()).getOrElse("")))
+        headers = Headers.of(Header.Raw(signer1.config.signatureHeaderName, signature1.map(_.value()).getOrElse("")))
       )
 
       val verified = signer2.verify(res2).unsafeRunSync()

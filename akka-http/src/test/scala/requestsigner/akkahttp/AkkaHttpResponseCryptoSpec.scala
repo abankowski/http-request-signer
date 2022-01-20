@@ -55,7 +55,7 @@ class AkkaHttpResponseCryptoSpec
       val signed = signer1.sign(res).unsafeRunSync()
 
       val signature =
-        signed.headers.find(_.name == signer1.config.signatureHeaderName)
+        signed.headers.find(_.name == signer1.config.signatureHeaderName.toString)
 
       signature shouldBe defined
 
@@ -69,9 +69,9 @@ class AkkaHttpResponseCryptoSpec
       val signed2 = signer2.sign(req).unsafeRunSync()
 
       val signature1 =
-        signed1.headers.find(_.name == signer1.config.signatureHeaderName)
+        signed1.headers.find(_.name == signer1.config.signatureHeaderName.toString)
       val signature2 =
-        signed2.headers.find(_.name == signer2.config.signatureHeaderName)
+        signed2.headers.find(_.name == signer2.config.signatureHeaderName.toString)
 
       signature1 shouldBe defined
       signature2 shouldBe defined

@@ -1,17 +1,18 @@
 package pl.abankowski.httpsigner
 
 import org.bouncycastle.util.encoders.Base64
+import org.typelevel.ci._
 
 import scala.language.higherKinds
 import pl.abankowski.httpsigner.signature.{Generator, Verifier}
 
 trait HttpCryptoConfig {
-  final val signatureHeaderName = "Request-Signature"
+  final val signatureHeaderName = ci"Request-Signature"
 
-  val protectedHeaders: Set[String] = Set(
-    "Content-Type",
-    "Cookie",
-    "Referer"
+  val protectedHeaders: Set[CIString] = Set(
+    ci"Content-Type",
+    ci"Cookie",
+    ci"Referer"
   )
 }
 

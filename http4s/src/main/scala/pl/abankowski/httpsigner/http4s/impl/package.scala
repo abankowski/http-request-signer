@@ -6,12 +6,19 @@ import cats.effect.Async
 import cats.implicits._
 import org.http4s.{Header, Headers, Request, Response}
 import org.typelevel.log4cats.Logger
-import pl.abankowski.httpsigner.{HttpCryptoConfig, HttpSigner, HttpVerifier, SignatureMissing, SignatureVerificationResult}
+import pl.abankowski.httpsigner.{
+  HttpCryptoConfig,
+  HttpSigner,
+  HttpVerifier,
+  SignatureMissing,
+  SignatureVerificationResult
+}
 import org.typelevel.ci.CIString
 
 package object impl {
 
   trait Helpers {
+
     protected def md5(msg: Array[Byte]): String = this.synchronized {
       import java.security.MessageDigest
 
@@ -21,7 +28,7 @@ package object impl {
     }
   }
 
-  trait RequestHelpers[F[_]] extends Helpers{
+  trait RequestHelpers[F[_]] extends Helpers {
     implicit val F: Async[F]
     val config: HttpCryptoConfig
 
@@ -29,7 +36,7 @@ package object impl {
       F.delay {
         (List(request.method.name, request.uri.path.toString(), request.uri.query.renderString) ++
           request.headers.headers.collect({
-            case header if config.protectedHeaders.exists(_.equalsIgnoreCase(header.name.toString)) =>
+            case header if config.protectedHeaders.exists(_.equals(header.name)) =>
               header.toString()
           })).foldLeft(new ByteArrayOutputStream()) { (buffer, value) =>
           buffer.write(value.getBytes)
@@ -43,7 +50,7 @@ package object impl {
       )
   }
 
-  trait ResponseHelpers[F[_]] extends Helpers{
+  trait ResponseHelpers[F[_]] extends Helpers {
     implicit val F: Async[F]
     val config: HttpCryptoConfig
 
@@ -54,7 +61,7 @@ package object impl {
 
         response.headers.headers
           .collect({
-            case header if config.protectedHeaders.exists(_.equalsIgnoreCase(header.name.toString)) =>
+            case header if config.protectedHeaders.exists(_.equals(header.name)) =>
               header.toString()
           })
           .foldLeft(buffer) { (buffer, value) =>
@@ -62,7 +69,7 @@ package object impl {
             buffer
           }
       }.flatMap { content =>
-        response.body.compile.toVector.map(_.toArray).map {body =>
+        response.body.compile.toVector.map(_.toArray).map { body =>
           content.write(body)
           content.toByteArray
         }
@@ -73,17 +80,18 @@ package object impl {
     protected val logger: Logger[F]
 
     override def sign(request: Request[F]): F[Request[F]] =
-      message(request)
-        .flatMap { msg =>
-          val signature = calculateSignature(msg)
-          logger.debug(s"Signing request ${request.method} ${request.pathInfo} req-hash=${md5(msg)} req-sig=$signature")
-            .map(_ =>
-              request.withHeaders(
-                Headers(
-                  Header(config.signatureHeaderName, signature) :: request.headers.headers
-                )
-            ))
-        }
+      message(request).flatMap { msg =>
+        val signature = calculateSignature(msg)
+        logger
+          .debug(s"Signing request ${request.method} ${request.pathInfo} req-hash=${md5(msg)} req-sig=$signature")
+          .map(_ =>
+            request.withHeaders(
+              Headers(
+                Header.Raw(config.signatureHeaderName, signature) :: request.headers.headers
+              )
+            )
+          )
+      }
   }
 
   trait Http4sRequestVerifier[F[_]] extends HttpVerifier[Request[F], F] with RequestHelpers[F] {
@@ -93,17 +101,22 @@ package object impl {
 
     override def verify(request: Request[F]): F[SignatureVerificationResult] =
       request.headers.headers
-        .find(_.name.toString.equalsIgnoreCase(config.signatureHeaderName))
+        .find(_.name.equals(config.signatureHeaderName))
         .map(signature =>
-          message(request).map{ msg =>
+          message(request).map { msg =>
             val result = verifySignature(msg, signature.value)
-            logger.debug(s"Verifying request ${request.method} ${request.pathInfo} req-hash=${md5(msg)} req-sig=${signature.value} result=${result}")
+            logger.debug(
+              s"Verifying request ${request.method} ${request.pathInfo} req-hash=${md5(msg)} req-sig=${signature.value} result=${result}"
+            )
             result
-        })
+          }
+        )
         .getOrElse(
-          logger.debug(s"Verifying request ${request.method} ${request.pathInfo} failed, signature missing")
-            .map(_ => SignatureMissing))
-   }
+          logger
+            .debug(s"Verifying request ${request.method} ${request.pathInfo} failed, signature missing")
+            .map(_ => SignatureMissing)
+        )
+  }
 
   trait Http4sResponseSigner[F[_]] extends HttpSigner[Response[F], F] with ResponseHelpers[F] {
     implicit val F: Async[F]
@@ -111,14 +124,12 @@ package object impl {
     protected val logger: Logger[F]
 
     override def sign(response: Response[F]): F[Response[F]] =
-      message(response)
-        .flatMap { msg =>
-          val signature = calculateSignature(msg)
-          logger.debug(s"Signing response resp-sig=$signature")
-            .map(_ =>
-            response.withHeaders(
-              response.headers.put(Header(config.signatureHeaderName, signature))))
-        }
+      message(response).flatMap { msg =>
+        val signature = calculateSignature(msg)
+        logger
+          .debug(s"Signing response resp-sig=$signature")
+          .map(_ => response.withHeaders(response.headers.put(Header.Raw(config.signatureHeaderName, signature))))
+      }
   }
 
   trait Http4sResponseVerifier[F[_]] extends HttpVerifier[Response[F], F] with ResponseHelpers[F] {
@@ -128,15 +139,18 @@ package object impl {
 
     override def verify(response: Response[F]): F[SignatureVerificationResult] =
       response.headers.headers
-        .find(_.name.toString.equalsIgnoreCase(config.signatureHeaderName))
+        .find(_.name.equals(config.signatureHeaderName))
         .map(signature =>
-          message(response).map{ msg =>
+          message(response).map { msg =>
             val result = verifySignature(msg, signature.value)
             logger.debug(s"Verifying response resp-hash=${md5(msg)} req-sig=${signature.value} result=${result}")
             result
-          })
+          }
+        )
         .getOrElse(
-          logger.debug(s"Verifying response failed, signature missing")
-            .map(_ => SignatureMissing))
+          logger
+            .debug(s"Verifying response failed, signature missing")
+            .map(_ => SignatureMissing)
+        )
   }
 }
