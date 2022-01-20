@@ -7,6 +7,7 @@ import cats.implicits._
 import org.http4s.{Header, Headers, Request, Response}
 import org.typelevel.log4cats.Logger
 import pl.abankowski.httpsigner.{HttpCryptoConfig, HttpSigner, HttpVerifier, SignatureMissing, SignatureVerificationResult}
+import org.typelevel.ci.CIString
 
 package object impl {
 
@@ -28,7 +29,7 @@ package object impl {
       F.delay {
         (List(request.method.name, request.uri.path.toString(), request.uri.query.renderString) ++
           request.headers.headers.collect({
-            case header if config.protectedHeaders.contains(header.name.value) =>
+            case header if config.protectedHeaders.exists(_.equalsIgnoreCase(header.name.toString)) =>
               header.toString()
           })).foldLeft(new ByteArrayOutputStream()) { (buffer, value) =>
           buffer.write(value.getBytes)
@@ -53,7 +54,7 @@ package object impl {
 
         response.headers.headers
           .collect({
-            case header if config.protectedHeaders.contains(header.name.value) =>
+            case header if config.protectedHeaders.exists(_.equalsIgnoreCase(header.name.toString)) =>
               header.toString()
           })
           .foldLeft(buffer) { (buffer, value) =>
@@ -92,7 +93,7 @@ package object impl {
 
     override def verify(request: Request[F]): F[SignatureVerificationResult] =
       request.headers.headers
-        .find(_.name.value == config.signatureHeaderName)
+        .find(_.name.toString.equalsIgnoreCase(config.signatureHeaderName))
         .map(signature =>
           message(request).map{ msg =>
             val result = verifySignature(msg, signature.value)
@@ -127,7 +128,7 @@ package object impl {
 
     override def verify(response: Response[F]): F[SignatureVerificationResult] =
       response.headers.headers
-        .find(_.name.value == config.signatureHeaderName)
+        .find(_.name.toString.equalsIgnoreCase(config.signatureHeaderName))
         .map(signature =>
           message(response).map{ msg =>
             val result = verifySignature(msg, signature.value)
