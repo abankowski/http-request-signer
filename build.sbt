@@ -5,7 +5,7 @@ lazy val scala211 = "2.13.1"
 lazy val supportedScalaVersions = List(scala212, scala211)
 
 ThisBuild / organization := "pl.abankowski"
-ThisBuild / version := "0.4.3"
+ThisBuild / version := "0.4.4"
 ThisBuild / scalaVersion := scala212
 
 ThisBuild / githubOwner := "abankowski"
@@ -47,7 +47,7 @@ lazy val core = (project in file("core"))
     name := "http-request-signer-core",
     crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(
-      "org.bouncycastle" % "bcprov-jdk15on" % "1.69",
+      "org.bouncycastle" % "bcprov-jdk18on" % "1.75",
       "org.typelevel" %% "case-insensitive" % versions.caseInsensitive
     ) ++ catsDependencies,
     licenses += ("Apache-2.0", url("http://opensource.org/licenses/Apache-2.0"))
